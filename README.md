@@ -25,17 +25,23 @@ Although this crate aim to reduce the risk of misuse, it is still possible to us
 
 # Frequently Asked Questions
 
-## Should I use this project?
+## Should I use this crate?
 
-Not yet.
+No, absolutely not. It doesn't even work yet.
 
-## Why shouldn't I directly use a symmetric encryption function instead of this crate?
+## Why should I use this crate instead of a symmetric encryption function?
 
-Cryptography is hard and, even if you some knowledge about it and pay attention, you may misuse it.
+Cryptography is hard. Even if you have some knowledge about this topic and pay attention not no mess up, you will eventually mess-up anyway.
+
+Seriously, this crate is designed to prevent some of the most common pitfalls. If you don't see why you need this crate, you probably don't see those pitfalls and you will fall into it.
 
 ## Why is the context so important?
 
-It helps preventing a confused deputy attack.
+When correctly used, it prevents from a confused deputy attack. Chose wisely.
+
+## Why has this crate not been audited by a security professional?
+
+Such an audit cost a lot of money. If you really care about this crate being audited, you may help financing it.
 
 ## Where does the name coffio comes from?
 
