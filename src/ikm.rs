@@ -1,12 +1,14 @@
+use crate::Scheme;
 use base64ct::{Base64UrlUnpadded, Encoding};
 use std::time::{Duration, SystemTime};
 
-const IKM_STRUCT_SIZE: usize = 53;
+const IKM_STRUCT_SIZE: usize = 57;
 const IKM_CONTENT_SIZE: usize = 32;
 
 #[derive(Debug)]
 pub struct InputKeyMaterial {
 	id: u32,
+	scheme: Scheme,
 	content: [u8; IKM_CONTENT_SIZE],
 	created_at: SystemTime,
 	expire_at: SystemTime,
@@ -17,6 +19,7 @@ impl InputKeyMaterial {
 	fn as_bytes(&self) -> [u8; IKM_STRUCT_SIZE] {
 		let mut res = Vec::with_capacity(IKM_STRUCT_SIZE);
 		res.extend_from_slice(&self.id.to_le_bytes());
+		res.extend_from_slice(&(self.scheme as u32).to_le_bytes());
 		res.extend_from_slice(&self.content);
 		res.extend_from_slice(
 			&self
@@ -41,18 +44,21 @@ impl InputKeyMaterial {
 	fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Self {
 		Self {
 			id: u32::from_le_bytes(b[0..4].try_into().unwrap()),
-			content: b[4..36].try_into().unwrap(),
+			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap())
+				.try_into()
+				.unwrap(),
+			content: b[8..40].try_into().unwrap(),
 			created_at: SystemTime::UNIX_EPOCH
 				.checked_add(Duration::from_secs(u64::from_le_bytes(
-					b[36..44].try_into().unwrap(),
+					b[40..48].try_into().unwrap(),
 				)))
 				.unwrap(),
 			expire_at: SystemTime::UNIX_EPOCH
 				.checked_add(Duration::from_secs(u64::from_le_bytes(
-					b[44..52].try_into().unwrap(),
+					b[48..56].try_into().unwrap(),
 				)))
 				.unwrap(),
-			is_revoked: b[52] != 0,
+			is_revoked: b[56] != 0,
 		}
 	}
 }
@@ -79,6 +85,7 @@ impl InputKeyMaterialList {
 		self.id_counter += 1;
 		self.ikm_lst.push(InputKeyMaterial {
 			id: self.id_counter,
+			scheme: crate::DEFAULT_SCHEME,
 			created_at,
 			expire_at: created_at + duration,
 			is_revoked: false,
@@ -166,12 +173,13 @@ mod tests {
 		let _ = lst.add_ikm();
 
 		let s = lst.export();
-		assert_eq!(s.len(), 76);
+		assert_eq!(s.len(), 82);
 	}
 
 	#[test]
 	fn import() {
-		let s = "AQAAAAEAAABucjrrlDwu3T9cIYqsmOg_h6_xO77fia0bahsIYnx9G9QVzWUAAAAAVEmuZwAAAAAA";
+		let s =
+			"AQAAAAEAAAABAAAANGFtbdYEN0s7dzCfMm7dYeQWD64GdmuKsYSiKwppAhmkz81lAAAAACQDr2cAAAAAAA";
 		let res = InputKeyMaterialList::import(s);
 		assert!(res.is_ok());
 		let lst = res.unwrap();
@@ -179,11 +187,12 @@ mod tests {
 		assert_eq!(lst.ikm_lst.len(), 1);
 		let ikm = lst.ikm_lst.first().unwrap();
 		assert_eq!(ikm.id, 1);
+		assert_eq!(ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
 		assert_eq!(
 			ikm.content,
 			[
-				110, 114, 58, 235, 148, 60, 46, 221, 63, 92, 33, 138, 172, 152, 232, 63, 135, 175,
-				241, 59, 190, 223, 137, 173, 27, 106, 27, 8, 98, 124, 125, 27
+				52, 97, 109, 109, 214, 4, 55, 75, 59, 119, 48, 159, 50, 110, 221, 97, 228, 22, 15,
+				174, 6, 118, 107, 138, 177, 132, 162, 43, 10, 105, 2, 25
 			]
 		);
 		assert_eq!(ikm.is_revoked, false);
