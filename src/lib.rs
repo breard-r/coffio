@@ -1,6 +1,8 @@
+mod error;
 mod ikm;
 mod scheme;
 
+pub use error::Error;
 pub use ikm::InputKeyMaterialList;
 pub use scheme::Scheme;
 

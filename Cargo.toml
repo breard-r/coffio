@@ -18,3 +18,4 @@ hazardous-materials = []
 [dependencies]
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }
 getrandom = { version = "0.2.12", default-features = false }
+thiserror = { version = "1.0.57", default-features = false }

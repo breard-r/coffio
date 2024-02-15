@@ -1,4 +1,4 @@
-use crate::Scheme;
+use crate::{Error, Scheme};
 use base64ct::{Base64UrlUnpadded, Encoding};
 use std::time::{Duration, SystemTime};
 
@@ -16,7 +16,7 @@ pub struct InputKeyMaterial {
 }
 
 impl InputKeyMaterial {
-	fn as_bytes(&self) -> [u8; IKM_STRUCT_SIZE] {
+	fn as_bytes(&self) -> Result<[u8; IKM_STRUCT_SIZE], Error> {
 		let mut res = Vec::with_capacity(IKM_STRUCT_SIZE);
 		res.extend_from_slice(&self.id.to_le_bytes());
 		res.extend_from_slice(&(self.scheme as u32).to_le_bytes());
@@ -24,42 +24,38 @@ impl InputKeyMaterial {
 		res.extend_from_slice(
 			&self
 				.created_at
-				.duration_since(SystemTime::UNIX_EPOCH)
-				.unwrap()
+				.duration_since(SystemTime::UNIX_EPOCH)?
 				.as_secs()
 				.to_le_bytes(),
 		);
 		res.extend_from_slice(
 			&self
 				.expire_at
-				.duration_since(SystemTime::UNIX_EPOCH)
-				.unwrap()
+				.duration_since(SystemTime::UNIX_EPOCH)?
 				.as_secs()
 				.to_le_bytes(),
 		);
 		res.push(self.is_revoked as u8);
-		res.try_into().unwrap()
+		Ok(res.try_into().unwrap())
 	}
 
-	fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Self {
-		Self {
+	fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self, Error> {
+		Ok(Self {
 			id: u32::from_le_bytes(b[0..4].try_into().unwrap()),
-			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap())
-				.try_into()
-				.unwrap(),
+			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
 			content: b[8..40].try_into().unwrap(),
-			created_at: SystemTime::UNIX_EPOCH
-				.checked_add(Duration::from_secs(u64::from_le_bytes(
-					b[40..48].try_into().unwrap(),
-				)))
-				.unwrap(),
-			expire_at: SystemTime::UNIX_EPOCH
-				.checked_add(Duration::from_secs(u64::from_le_bytes(
-					b[48..56].try_into().unwrap(),
-				)))
-				.unwrap(),
+			created_at: InputKeyMaterial::bytes_to_system_time(&b[40..48])?,
+			expire_at: InputKeyMaterial::bytes_to_system_time(&b[48..56])?,
 			is_revoked: b[56] != 0,
-		}
+		})
+	}
+
+	fn bytes_to_system_time(ts_slice: &[u8]) -> Result<SystemTime, Error> {
+		let ts_array: [u8; 8] = ts_slice.try_into().unwrap();
+		let ts = u64::from_le_bytes(ts_array);
+		Ok(SystemTime::UNIX_EPOCH
+			.checked_add(Duration::from_secs(ts))
+			.ok_or(Error::SystemTimeReprError(ts))?)
 	}
 }
 
@@ -74,11 +70,11 @@ impl InputKeyMaterialList {
 		Self::default()
 	}
 
-	pub fn add_ikm(&mut self) -> Result<(), getrandom::Error> {
+	pub fn add_ikm(&mut self) -> Result<(), Error> {
 		self.add_ikm_with_duration(Duration::from_secs(crate::DEFAULT_IKM_DURATION))
 	}
 
-	pub fn add_ikm_with_duration(&mut self, duration: Duration) -> Result<(), getrandom::Error> {
+	pub fn add_ikm_with_duration(&mut self, duration: Duration) -> Result<(), Error> {
 		let mut content: [u8; 32] = [0; 32];
 		getrandom::getrandom(&mut content)?;
 		let created_at = SystemTime::now();
@@ -94,24 +90,24 @@ impl InputKeyMaterialList {
 		Ok(())
 	}
 
-	pub fn export(&self) -> String {
+	pub fn export(&self) -> Result<String, Error> {
 		let data_size = (self.ikm_lst.len() * IKM_STRUCT_SIZE) + 4;
 		let mut data = Vec::with_capacity(data_size);
 		data.extend_from_slice(&self.id_counter.to_le_bytes());
 		for ikm in &self.ikm_lst {
-			data.extend_from_slice(&ikm.as_bytes());
+			data.extend_from_slice(&ikm.as_bytes()?);
 		}
-		Base64UrlUnpadded::encode_string(&data)
+		Ok(Base64UrlUnpadded::encode_string(&data))
 	}
 
-	pub fn import(s: &str) -> Result<Self, String> {
-		let data = Base64UrlUnpadded::decode_vec(s).unwrap();
+	pub fn import(s: &str) -> Result<Self, Error> {
+		let data = Base64UrlUnpadded::decode_vec(s)?;
 		if data.len() % IKM_STRUCT_SIZE != 4 {
-			return Err("Invalid string".to_string());
+			return Err(Error::ParsingInvalidLength(data.len()));
 		}
 		let mut ikm_lst = Vec::with_capacity(data.len() / IKM_STRUCT_SIZE);
 		for ikm_slice in data[4..].chunks_exact(IKM_STRUCT_SIZE) {
-			ikm_lst.push(InputKeyMaterial::from_bytes(ikm_slice.try_into().unwrap()));
+			ikm_lst.push(InputKeyMaterial::from_bytes(ikm_slice.try_into().unwrap())?);
 		}
 		Ok(Self {
 			ikm_lst,
@@ -163,7 +159,9 @@ mod tests {
 		assert_eq!(lst.id_counter, 0);
 		assert_eq!(lst.ikm_lst.len(), 0);
 
-		let s = lst.export();
+		let res = lst.export();
+		assert!(res.is_ok());
+		let s = res.unwrap();
 		assert_eq!(&s, "AAAAAA");
 	}
 
@@ -172,7 +170,9 @@ mod tests {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 
-		let s = lst.export();
+		let res = lst.export();
+		assert!(res.is_ok());
+		let s = res.unwrap();
 		assert_eq!(s.len(), 82);
 	}
 
@@ -202,7 +202,10 @@ mod tests {
 	fn export_import_empty() {
 		let lst = InputKeyMaterialList::new();
 
-		let s = lst.export();
+		let res = lst.export();
+		assert!(res.is_ok());
+		let s = res.unwrap();
+
 		let res = InputKeyMaterialList::import(&s);
 		assert!(res.is_ok());
 		let lst_bis = res.unwrap();
@@ -219,7 +222,10 @@ mod tests {
 			let _ = lst.add_ikm();
 		}
 
-		let s = lst.export();
+		let res = lst.export();
+		assert!(res.is_ok());
+		let s = res.unwrap();
+
 		let res = InputKeyMaterialList::import(&s);
 		assert!(res.is_ok());
 		let lst_bis = res.unwrap();
