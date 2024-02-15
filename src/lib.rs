@@ -1,9 +1,13 @@
+#[cfg(feature = "encryption")]
+mod encryption;
 mod error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod ikm;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod scheme;
 
+#[cfg(feature = "encryption")]
+pub use encryption::{decrypt, encrypt};
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use ikm::InputKeyMaterialList;
