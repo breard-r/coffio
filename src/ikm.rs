@@ -128,6 +128,14 @@ impl InputKeyMaterialList {
 			.find(|&ikm| !ikm.is_revoked && ikm.created_at < SystemTime::now())
 			.ok_or(Error::IkmNoneAvailable)
 	}
+
+	#[cfg(feature = "encryption")]
+	pub(crate) fn get_ikm_by_id(&self, id: u32) -> Result<&InputKeyMaterial, Error> {
+		self.ikm_lst
+			.iter()
+			.find(|&ikm| ikm.id == id)
+			.ok_or(Error::IkmNotFound(id))
+	}
 }
 
 #[cfg(test)]
@@ -276,5 +284,31 @@ mod tests {
 		assert!(res.is_ok());
 		let latest_ikm = res.unwrap();
 		assert_eq!(latest_ikm.id, 3);
+	}
+
+	#[test]
+	#[cfg(feature = "encryption")]
+	fn get_ikm_by_id() {
+		let mut lst = InputKeyMaterialList::new();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		for i in 1..=3 {
+			let res = lst.get_ikm_by_id(i);
+			assert!(res.is_ok());
+			let latest_ikm = res.unwrap();
+			assert_eq!(latest_ikm.id, i);
+		}
+	}
+
+	#[test]
+	#[cfg(feature = "encryption")]
+	fn get_ikm_by_id_noexists() {
+		let mut lst = InputKeyMaterialList::new();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		let res = lst.get_ikm_by_id(42);
+		assert!(res.is_err());
 	}
 }
