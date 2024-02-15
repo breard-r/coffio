@@ -53,9 +53,9 @@ impl InputKeyMaterial {
 	fn bytes_to_system_time(ts_slice: &[u8]) -> Result<SystemTime, Error> {
 		let ts_array: [u8; 8] = ts_slice.try_into().unwrap();
 		let ts = u64::from_le_bytes(ts_array);
-		Ok(SystemTime::UNIX_EPOCH
+		SystemTime::UNIX_EPOCH
 			.checked_add(Duration::from_secs(ts))
-			.ok_or(Error::SystemTimeReprError(ts))?)
+			.ok_or(Error::SystemTimeReprError(ts))
 	}
 }
 
