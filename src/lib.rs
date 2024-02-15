@@ -15,7 +15,7 @@ pub use ikm::InputKeyMaterialList;
 pub use scheme::Scheme;
 
 #[cfg(feature = "ikm-management")]
-const DEFAULT_IKM_DURATION: u64 = 60 * 60 * 24 * 365; // In seconds
+const DEFAULT_IKM_DURATION: u64 = 60 * 60 * 24 * 7305; // In seconds, set to 7305 days (aprox. 20 years)
 #[cfg(feature = "ikm-management")]
 const DEFAULT_SCHEME: Scheme = Scheme::XChaCha20Poly1305WithBlake3;
 
