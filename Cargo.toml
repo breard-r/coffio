@@ -13,7 +13,7 @@ categories = ["cryptography"]
 
 [features]
 default = []
-hazardous-materials = []
+i-understand-and-accept-the-risks = []
 
 [dependencies]
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }
