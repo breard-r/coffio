@@ -6,13 +6,13 @@ const IKM_STRUCT_SIZE: usize = 57;
 const IKM_CONTENT_SIZE: usize = 32;
 
 #[derive(Debug)]
-pub struct InputKeyMaterial {
-	id: u32,
-	scheme: Scheme,
-	content: [u8; IKM_CONTENT_SIZE],
-	created_at: SystemTime,
-	expire_at: SystemTime,
-	is_revoked: bool,
+pub(crate) struct InputKeyMaterial {
+	pub(crate) id: u32,
+	pub(crate) scheme: Scheme,
+	pub(crate) content: [u8; IKM_CONTENT_SIZE],
+	pub(crate) created_at: SystemTime,
+	pub(crate) expire_at: SystemTime,
+	pub(crate) is_revoked: bool,
 }
 
 impl InputKeyMaterial {
