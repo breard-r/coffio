@@ -19,5 +19,7 @@ i-understand-and-accept-the-risks = []
 
 [dependencies]
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }
+blake3 = { version = "1.5.0", default-features = false, features = ["std", "traits-preview"] }
+digest = { version = "0.10.7", default-features = false, features = ["std"] }
 getrandom = { version = "0.2.12", default-features = false }
 thiserror = { version = "1.0.57", default-features = false }
