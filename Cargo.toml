@@ -12,7 +12,9 @@ keywords = ["cryptography", "encryption"]
 categories = ["cryptography"]
 
 [features]
-default = []
+default = ["encryption", "ikm-management"]
+encryption = []
+ikm-management = []
 i-understand-and-accept-the-risks = []
 
 [dependencies]

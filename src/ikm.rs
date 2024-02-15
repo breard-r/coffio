@@ -16,6 +16,7 @@ pub struct InputKeyMaterial {
 }
 
 impl InputKeyMaterial {
+	#[cfg(feature = "ikm-management")]
 	fn as_bytes(&self) -> Result<[u8; IKM_STRUCT_SIZE], Error> {
 		let mut res = Vec::with_capacity(IKM_STRUCT_SIZE);
 		res.extend_from_slice(&self.id.to_le_bytes());
@@ -66,14 +67,17 @@ pub struct InputKeyMaterialList {
 }
 
 impl InputKeyMaterialList {
+	#[cfg(feature = "ikm-management")]
 	pub fn new() -> Self {
 		Self::default()
 	}
 
+	#[cfg(feature = "ikm-management")]
 	pub fn add_ikm(&mut self) -> Result<(), Error> {
 		self.add_ikm_with_duration(Duration::from_secs(crate::DEFAULT_IKM_DURATION))
 	}
 
+	#[cfg(feature = "ikm-management")]
 	pub fn add_ikm_with_duration(&mut self, duration: Duration) -> Result<(), Error> {
 		let mut content: [u8; 32] = [0; 32];
 		getrandom::getrandom(&mut content)?;
@@ -90,6 +94,7 @@ impl InputKeyMaterialList {
 		Ok(())
 	}
 
+	#[cfg(feature = "ikm-management")]
 	pub fn export(&self) -> Result<String, Error> {
 		let data_size = (self.ikm_lst.len() * IKM_STRUCT_SIZE) + 4;
 		let mut data = Vec::with_capacity(data_size);
@@ -120,6 +125,7 @@ impl InputKeyMaterialList {
 mod tests {
 	use super::*;
 
+	#[cfg(feature = "ikm-management")]
 	fn round_time(t: SystemTime) -> SystemTime {
 		let secs = t.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 		SystemTime::UNIX_EPOCH
@@ -128,6 +134,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn gen_ikm_list() {
 		let mut lst = InputKeyMaterialList::new();
 		assert_eq!(lst.id_counter, 0);
@@ -154,6 +161,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn export_empty() {
 		let lst = InputKeyMaterialList::new();
 		assert_eq!(lst.id_counter, 0);
@@ -166,6 +174,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn export() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -199,6 +208,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn export_import_empty() {
 		let lst = InputKeyMaterialList::new();
 
@@ -216,6 +226,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn export_import() {
 		let mut lst = InputKeyMaterialList::new();
 		for _ in 0..10 {
