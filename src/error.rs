@@ -2,6 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
+	#[error("ikm error: no input key material available")]
+	IkmNoneAvailable,
 	#[error("parsing error: invalid base64-urlsafe-nopadding data: {0}")]
 	ParsingBase64Error(base64ct::Error),
 	#[error("parsing error: invalid data length: {0} bytes")]

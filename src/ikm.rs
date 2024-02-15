@@ -119,6 +119,15 @@ impl InputKeyMaterialList {
 			id_counter: u32::from_le_bytes(data[0..4].try_into().unwrap()),
 		})
 	}
+
+	#[cfg(feature = "encryption")]
+	pub(crate) fn get_latest_ikm(&self) -> Result<&InputKeyMaterial, Error> {
+		self.ikm_lst
+			.iter()
+			.rev()
+			.find(|&ikm| !ikm.is_revoked && ikm.created_at < SystemTime::now())
+			.ok_or(Error::IkmNoneAvailable)
+	}
 }
 
 #[cfg(test)]
@@ -254,5 +263,18 @@ mod tests {
 			assert_eq!(el_bis.expire_at, round_time(el.expire_at));
 			assert_eq!(el_bis.is_revoked, el.is_revoked);
 		}
+	}
+
+	#[test]
+	#[cfg(feature = "encryption")]
+	fn get_latest_ikm() {
+		let mut lst = InputKeyMaterialList::new();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		let res = lst.get_latest_ikm();
+		assert!(res.is_ok());
+		let latest_ikm = res.unwrap();
+		assert_eq!(latest_ikm.id, 3);
 	}
 }
