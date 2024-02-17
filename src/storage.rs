@@ -1,0 +1,42 @@
+use crate::encryption::EncryptedData;
+use crate::Error;
+use base64ct::{Base64UrlUnpadded, Encoding};
+
+const STORAGE_SEPARATOR: &str = ":";
+
+#[inline]
+fn encode_data(data: &[u8]) -> String {
+	Base64UrlUnpadded::encode_string(data)
+}
+
+pub(crate) fn encode(ikm_id: u32, encrypted_data: &EncryptedData) -> String {
+	let mut ret = String::new();
+	ret += &encode_data(&ikm_id.to_le_bytes());
+	ret += STORAGE_SEPARATOR;
+	ret += &encode_data(&encrypted_data.nonce);
+	ret += STORAGE_SEPARATOR;
+	ret += &encode_data(&encrypted_data.ciphertext);
+	ret
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::storage::EncryptedData;
+
+	#[test]
+	fn encode() {
+		let data = EncryptedData {
+			nonce: vec![
+				0x6b, 0x94, 0xa9, 0x8c, 0x0a, 0x2a, 0x86, 0xfb, 0x88, 0xf6, 0x7d, 0xc6, 0x3e, 0x10,
+				0xca, 0xba, 0x8b, 0x6a, 0xa0, 0xb6, 0xdf, 0xef, 0xf1, 0x5b,
+			],
+			ciphertext: vec![
+				0x4c, 0x8d, 0xb8, 0x5a, 0xbf, 0xe0, 0xf9, 0x95, 0x7b, 0xfd, 0x7d, 0x68, 0x1e, 0xa5,
+				0x4a, 0x6a, 0x4f, 0x62, 0x46, 0x54, 0x12, 0x9d, 0xe6, 0x15, 0x38, 0xc5, 0x81, 0xfb,
+				0x72, 0xe9, 0xfa, 0x11, 0x47, 0x29, 0xfc, 0x5f, 0x9d, 0x8f, 0xb3, 0x47, 0xf6, 0xcd,
+			],
+		};
+		let s = super::encode(42, &data);
+		assert_eq!(&s, "KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN");
+	}
+}

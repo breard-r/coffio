@@ -2,6 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
+	#[error("cipher error: {0}")]
+	ChaCha20Poly1305Error(chacha20poly1305::Error),
 	#[error("ikm error: no input key material available")]
 	IkmNoneAvailable,
 	#[error("ikm error: {0}: input key material not found")]
@@ -23,6 +25,12 @@ pub enum Error {
 impl From<base64ct::Error> for Error {
 	fn from(error: base64ct::Error) -> Self {
 		Error::ParsingBase64Error(error)
+	}
+}
+
+impl From<chacha20poly1305::Error> for Error {
+	fn from(error: chacha20poly1305::Error) -> Self {
+		Error::ChaCha20Poly1305Error(error)
 	}
 }
 

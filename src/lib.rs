@@ -8,6 +8,8 @@ mod ikm;
 mod kdf;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod scheme;
+#[cfg(feature = "encryption")]
+mod storage;
 
 #[cfg(feature = "encryption")]
 pub use encryption::{decrypt, encrypt};
