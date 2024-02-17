@@ -289,7 +289,7 @@ mod tests {
 	#[test]
 	#[cfg(feature = "encryption")]
 	fn get_latest_ikm_empty() {
-		let mut lst = InputKeyMaterialList::new();
+		let lst = InputKeyMaterialList::new();
 		let res = lst.get_latest_ikm();
 		assert!(res.is_err());
 	}
