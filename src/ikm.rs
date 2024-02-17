@@ -1,4 +1,5 @@
-use crate::{Error, Scheme};
+use crate::error::{Error, Result};
+use crate::Scheme;
 use base64ct::{Base64UrlUnpadded, Encoding};
 use std::time::{Duration, SystemTime};
 
@@ -17,7 +18,7 @@ pub(crate) struct InputKeyMaterial {
 
 impl InputKeyMaterial {
 	#[cfg(feature = "ikm-management")]
-	fn as_bytes(&self) -> Result<[u8; IKM_STRUCT_SIZE], Error> {
+	fn as_bytes(&self) -> Result<[u8; IKM_STRUCT_SIZE]> {
 		let mut res = Vec::with_capacity(IKM_STRUCT_SIZE);
 		res.extend_from_slice(&self.id.to_le_bytes());
 		res.extend_from_slice(&(self.scheme as u32).to_le_bytes());
@@ -40,7 +41,7 @@ impl InputKeyMaterial {
 		Ok(res.try_into().unwrap())
 	}
 
-	pub(crate) fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self, Error> {
+	pub(crate) fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self> {
 		Ok(Self {
 			id: u32::from_le_bytes(b[0..4].try_into().unwrap()),
 			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
@@ -51,7 +52,7 @@ impl InputKeyMaterial {
 		})
 	}
 
-	fn bytes_to_system_time(ts_slice: &[u8]) -> Result<SystemTime, Error> {
+	fn bytes_to_system_time(ts_slice: &[u8]) -> Result<SystemTime> {
 		let ts_array: [u8; 8] = ts_slice.try_into().unwrap();
 		let ts = u64::from_le_bytes(ts_array);
 		SystemTime::UNIX_EPOCH
@@ -73,12 +74,12 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "ikm-management")]
-	pub fn add_ikm(&mut self) -> Result<(), Error> {
+	pub fn add_ikm(&mut self) -> Result<()> {
 		self.add_ikm_with_duration(Duration::from_secs(crate::DEFAULT_IKM_DURATION))
 	}
 
 	#[cfg(feature = "ikm-management")]
-	pub fn add_ikm_with_duration(&mut self, duration: Duration) -> Result<(), Error> {
+	pub fn add_ikm_with_duration(&mut self, duration: Duration) -> Result<()> {
 		let mut content: [u8; 32] = [0; 32];
 		getrandom::getrandom(&mut content)?;
 		let created_at = SystemTime::now();
@@ -95,7 +96,7 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "ikm-management")]
-	pub fn export(&self) -> Result<String, Error> {
+	pub fn export(&self) -> Result<String> {
 		let data_size = (self.ikm_lst.len() * IKM_STRUCT_SIZE) + 4;
 		let mut data = Vec::with_capacity(data_size);
 		data.extend_from_slice(&self.id_counter.to_le_bytes());
@@ -105,7 +106,7 @@ impl InputKeyMaterialList {
 		Ok(Base64UrlUnpadded::encode_string(&data))
 	}
 
-	pub fn import(s: &str) -> Result<Self, Error> {
+	pub fn import(s: &str) -> Result<Self> {
 		let data = Base64UrlUnpadded::decode_vec(s)?;
 		if data.len() % IKM_STRUCT_SIZE != 4 {
 			return Err(Error::ParsingInvalidLength(data.len()));
@@ -121,7 +122,7 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "encryption")]
-	pub(crate) fn get_latest_ikm(&self) -> Result<&InputKeyMaterial, Error> {
+	pub(crate) fn get_latest_ikm(&self) -> Result<&InputKeyMaterial> {
 		self.ikm_lst
 			.iter()
 			.rev()
@@ -130,7 +131,7 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "encryption")]
-	pub(crate) fn get_ikm_by_id(&self, id: u32) -> Result<&InputKeyMaterial, Error> {
+	pub(crate) fn get_ikm_by_id(&self, id: u32) -> Result<&InputKeyMaterial> {
 		self.ikm_lst
 			.iter()
 			.find(|&ikm| ikm.id == id)

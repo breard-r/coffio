@@ -1,6 +1,6 @@
-use thiserror::Error;
+pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
 
-#[derive(Error, Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum Error {
 	#[error("cipher error: {0}")]
 	ChaCha20Poly1305Error(chacha20poly1305::Error),

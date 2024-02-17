@@ -1,10 +1,11 @@
 use crate::canonicalization::{canonicalize, join_canonicalized_str};
+use crate::error::Result;
 use crate::kdf::derive_key;
-use crate::{storage, Error, InputKeyMaterialList};
+use crate::{storage, InputKeyMaterialList};
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
 
-pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &str) -> Result<EncryptedData, Error>;
+pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &str) -> Result<EncryptedData>;
 
 pub(crate) struct EncryptedData {
 	pub(crate) nonce: Vec<u8>,
@@ -16,7 +17,7 @@ pub fn encrypt(
 	key_context: &[&str],
 	data: impl AsRef<[u8]>,
 	data_context: &[impl AsRef<[u8]>],
-) -> Result<String, Error> {
+) -> Result<String> {
 	// Derive the key
 	let ikm = ikml.get_latest_ikm()?;
 	let key = derive_key(ikm, key_context);
@@ -38,7 +39,7 @@ pub(crate) fn xchacha20poly1305_encrypt(
 	key: &[u8],
 	data: &[u8],
 	aad: &str,
-) -> Result<EncryptedData, Error> {
+) -> Result<EncryptedData> {
 	// Adapt the key
 	let key = Key::from_slice(key);
 
@@ -69,7 +70,7 @@ pub fn decrypt(
 	key_context: &[&str],
 	data: impl AsRef<[u8]>,
 	data_context: &[impl AsRef<[u8]>],
-) -> Result<Vec<u8>, Error> {
+) -> Result<Vec<u8>> {
 	unimplemented!("decrypt");
 }
 
