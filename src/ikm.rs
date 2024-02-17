@@ -40,7 +40,7 @@ impl InputKeyMaterial {
 		Ok(res.try_into().unwrap())
 	}
 
-	fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self, Error> {
+	pub(crate) fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self, Error> {
 		Ok(Self {
 			id: u32::from_le_bytes(b[0..4].try_into().unwrap()),
 			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
