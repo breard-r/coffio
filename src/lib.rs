@@ -1,3 +1,4 @@
+mod canonicalization;
 #[cfg(feature = "encryption")]
 mod encryption;
 mod error;
