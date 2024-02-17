@@ -1,3 +1,4 @@
+use crate::kdf::KdfFunction;
 use crate::Error;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -6,21 +7,9 @@ pub enum Scheme {
 }
 
 impl Scheme {
-	pub(crate) fn canonicalization_hasher(&self) -> impl digest::Digest {
+	pub(crate) fn get_kdf(&self) -> Box<KdfFunction> {
 		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => blake3::Hasher::new(),
-		}
-	}
-
-	pub(crate) fn get_kdf(&self) -> impl Fn(&[u8], &[u8]) -> Vec<u8> {
-		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => crate::kdf::blake3_derive,
-		}
-	}
-
-	pub(crate) fn key_size(&self) -> usize {
-		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => 32,
+			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(crate::kdf::blake3_derive),
 		}
 	}
 }

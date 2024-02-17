@@ -1,9 +1,9 @@
-use crate::key::derive_key;
+use crate::kdf::derive_key;
 use crate::{Error, InputKeyMaterialList};
 
 pub fn encrypt(
 	ikml: &InputKeyMaterialList,
-	key_context: &[impl AsRef<[u8]>],
+	key_context: &[&str],
 	data: impl AsRef<[u8]>,
 	data_context: &[impl AsRef<[u8]>],
 ) -> Result<String, Error> {
@@ -14,7 +14,7 @@ pub fn encrypt(
 
 pub fn decrypt(
 	ikml: &InputKeyMaterialList,
-	key_context: &[impl AsRef<[u8]>],
+	key_context: &[&str],
 	data: impl AsRef<[u8]>,
 	data_context: &[impl AsRef<[u8]>],
 ) -> Result<Vec<u8>, Error> {

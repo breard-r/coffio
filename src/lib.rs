@@ -5,8 +5,6 @@ mod error;
 mod ikm;
 #[cfg(feature = "encryption")]
 mod kdf;
-#[cfg(feature = "encryption")]
-mod key;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod scheme;
 
