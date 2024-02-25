@@ -14,6 +14,10 @@ pub enum Error {
 	ParsingInvalidLength(usize),
 	#[error("parsing error: {0}: unknown scheme")]
 	ParsingUnknownScheme(u32),
+	#[error("parsing error: encoded data: invalid IKM id: {0:?}")]
+	ParsingEncodedDataInvalidIkmId(Vec<u8>),
+	#[error("parsing error: encoded data: invalid number of parts: got {1} instead of {0}")]
+	ParsingEncodedDataInvalidPartLen(usize, usize),
 	#[error("unable to generate random values: {0}")]
 	RandomSourceError(getrandom::Error),
 	#[error("system time error: {0}")]
