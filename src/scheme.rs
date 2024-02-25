@@ -2,6 +2,9 @@ use crate::encryption::{DecryptionFunction, EncryptionFunction};
 use crate::kdf::KdfFunction;
 use crate::Error;
 
+mod blake3;
+mod xchacha20poly1305;
+
 pub(crate) type SchemeSerializeType = u32;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -12,14 +15,14 @@ pub enum Scheme {
 impl Scheme {
 	pub(crate) fn get_kdf(&self) -> Box<KdfFunction> {
 		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(crate::kdf::blake3_derive),
+			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(blake3::blake3_derive),
 		}
 	}
 
 	pub(crate) fn get_decryption(&self) -> Box<DecryptionFunction> {
 		match self {
 			Scheme::XChaCha20Poly1305WithBlake3 => {
-				Box::new(crate::encryption::xchacha20poly1305_decrypt)
+				Box::new(xchacha20poly1305::xchacha20poly1305_decrypt)
 			}
 		}
 	}
@@ -27,7 +30,7 @@ impl Scheme {
 	pub(crate) fn get_encryption(&self) -> Box<EncryptionFunction> {
 		match self {
 			Scheme::XChaCha20Poly1305WithBlake3 => {
-				Box::new(crate::encryption::xchacha20poly1305_encrypt)
+				Box::new(xchacha20poly1305::xchacha20poly1305_encrypt)
 			}
 		}
 	}
