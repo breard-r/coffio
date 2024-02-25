@@ -6,6 +6,7 @@ use std::time::{Duration, SystemTime};
 const IKM_STRUCT_SIZE: usize = 57;
 const IKM_CONTENT_SIZE: usize = 32;
 
+pub(crate) type CounterId = u32;
 pub(crate) type IkmId = u32;
 
 #[derive(Debug)]
@@ -66,7 +67,7 @@ impl InputKeyMaterial {
 #[derive(Debug, Default)]
 pub struct InputKeyMaterialList {
 	ikm_lst: Vec<InputKeyMaterial>,
-	id_counter: u32,
+	id_counter: CounterId,
 }
 
 impl InputKeyMaterialList {
@@ -119,7 +120,7 @@ impl InputKeyMaterialList {
 		}
 		Ok(Self {
 			ikm_lst,
-			id_counter: u32::from_le_bytes(data[0..4].try_into().unwrap()),
+			id_counter: CounterId::from_le_bytes(data[0..4].try_into().unwrap()),
 		})
 	}
 
