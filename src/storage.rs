@@ -88,7 +88,7 @@ mod tests {
 			ciphertext: TEST_CIPHERTEXT.into(),
 		};
 		let s = super::encode(TEST_IKM_ID, &data);
-		let (id, decoded_data) = super::decode(TEST_STR).unwrap();
+		let (id, decoded_data) = super::decode(&s).unwrap();
 		assert_eq!(id, TEST_IKM_ID);
 		assert_eq!(decoded_data.nonce, data.nonce);
 		assert_eq!(decoded_data.ciphertext, data.ciphertext);
