@@ -6,9 +6,11 @@ use std::time::{Duration, SystemTime};
 const IKM_STRUCT_SIZE: usize = 57;
 const IKM_CONTENT_SIZE: usize = 32;
 
+pub(crate) type IkmId = u32;
+
 #[derive(Debug)]
 pub(crate) struct InputKeyMaterial {
-	pub(crate) id: u32,
+	pub(crate) id: IkmId,
 	pub(crate) scheme: Scheme,
 	pub(crate) content: [u8; IKM_CONTENT_SIZE],
 	pub(crate) created_at: SystemTime,
@@ -43,7 +45,7 @@ impl InputKeyMaterial {
 
 	pub(crate) fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self> {
 		Ok(Self {
-			id: u32::from_le_bytes(b[0..4].try_into().unwrap()),
+			id: IkmId::from_le_bytes(b[0..4].try_into().unwrap()),
 			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
 			content: b[8..40].try_into().unwrap(),
 			created_at: InputKeyMaterial::bytes_to_system_time(&b[40..48])?,
@@ -131,7 +133,7 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "encryption")]
-	pub(crate) fn get_ikm_by_id(&self, id: u32) -> Result<&InputKeyMaterial> {
+	pub(crate) fn get_ikm_by_id(&self, id: IkmId) -> Result<&InputKeyMaterial> {
 		self.ikm_lst
 			.iter()
 			.find(|&ikm| ikm.id == id)

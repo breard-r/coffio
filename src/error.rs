@@ -1,3 +1,5 @@
+use crate::ikm::IkmId;
+
 pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
 
 #[derive(thiserror::Error, Debug)]
@@ -7,7 +9,7 @@ pub enum Error {
 	#[error("ikm error: no input key material available")]
 	IkmNoneAvailable,
 	#[error("ikm error: {0}: input key material not found")]
-	IkmNotFound(u32),
+	IkmNotFound(IkmId),
 	#[error("parsing error: invalid base64-urlsafe-nopadding data: {0}")]
 	ParsingBase64Error(base64ct::Error),
 	#[error("parsing error: encoded data: invalid IKM id: {0:?}")]

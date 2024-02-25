@@ -1,5 +1,6 @@
 use crate::encryption::EncryptedData;
 use crate::error::{Error, Result};
+use crate::ikm::IkmId;
 use base64ct::{Base64UrlUnpadded, Encoding};
 
 const STORAGE_SEPARATOR: &str = ":";
@@ -15,7 +16,7 @@ fn decode_data(s: &str) -> Result<Vec<u8>> {
 	Ok(Base64UrlUnpadded::decode_vec(s)?)
 }
 
-pub(crate) fn encode(ikm_id: u32, encrypted_data: &EncryptedData) -> String {
+pub(crate) fn encode(ikm_id: IkmId, encrypted_data: &EncryptedData) -> String {
 	let mut ret = String::new();
 	ret += &encode_data(&ikm_id.to_le_bytes());
 	ret += STORAGE_SEPARATOR;
@@ -25,7 +26,7 @@ pub(crate) fn encode(ikm_id: u32, encrypted_data: &EncryptedData) -> String {
 	ret
 }
 
-pub(crate) fn decode(data: &str) -> Result<(u32, EncryptedData)> {
+pub(crate) fn decode(data: &str) -> Result<(IkmId, EncryptedData)> {
 	let v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	if v.len() != NB_PARTS {
 		return Err(Error::ParsingEncodedDataInvalidPartLen(NB_PARTS, v.len()));
@@ -35,7 +36,7 @@ pub(crate) fn decode(data: &str) -> Result<(u32, EncryptedData)> {
 		.clone()
 		.try_into()
 		.map_err(|_| Error::ParsingEncodedDataInvalidIkmId(id_raw))?;
-	let id = u32::from_le_bytes(id_raw);
+	let id = IkmId::from_le_bytes(id_raw);
 	let encrypted_data = EncryptedData {
 		nonce: decode_data(v[1])?,
 		ciphertext: decode_data(v[2])?,
@@ -45,10 +46,11 @@ pub(crate) fn decode(data: &str) -> Result<(u32, EncryptedData)> {
 
 #[cfg(test)]
 mod tests {
+	use crate::ikm::IkmId;
 	use crate::storage::EncryptedData;
 
 	const TEST_STR: &str = "KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN";
-	const TEST_IKM_ID: u32 = 42;
+	const TEST_IKM_ID: IkmId = 42;
 	const TEST_NONCE: &'static [u8] = &[
 		0x6b, 0x94, 0xa9, 0x8c, 0x0a, 0x2a, 0x86, 0xfb, 0x88, 0xf6, 0x7d, 0xc6, 0x3e, 0x10, 0xca,
 		0xba, 0x8b, 0x6a, 0xa0, 0xb6, 0xdf, 0xef, 0xf1, 0x5b,
