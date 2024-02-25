@@ -7,16 +7,16 @@ const IKM_STRUCT_SIZE: usize = 57;
 const IKM_CONTENT_SIZE: usize = 32;
 
 pub(crate) type CounterId = u32;
-pub(crate) type IkmId = u32;
+pub type IkmId = u32;
 
 #[derive(Debug)]
-pub(crate) struct InputKeyMaterial {
-	pub(crate) id: IkmId,
-	pub(crate) scheme: Scheme,
+pub struct InputKeyMaterial {
+	pub id: IkmId,
+	pub scheme: Scheme,
 	pub(crate) content: [u8; IKM_CONTENT_SIZE],
-	pub(crate) created_at: SystemTime,
-	pub(crate) expire_at: SystemTime,
-	pub(crate) is_revoked: bool,
+	pub created_at: SystemTime,
+	pub expire_at: SystemTime,
+	pub is_revoked: bool,
 }
 
 impl InputKeyMaterial {
