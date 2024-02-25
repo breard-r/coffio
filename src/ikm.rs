@@ -99,6 +99,11 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "ikm-management")]
+	pub fn delete_ikm(&mut self, id: IkmId) {
+		self.ikm_lst.retain(|ikm| ikm.id != id);
+	}
+
+	#[cfg(feature = "ikm-management")]
 	pub fn revoke_ikm(&mut self, id: IkmId) -> Result<()> {
 		let ikm = self
 			.ikm_lst
@@ -286,6 +291,25 @@ mod tests {
 			assert_eq!(el_bis.expire_at, round_time(el.expire_at));
 			assert_eq!(el_bis.is_revoked, el.is_revoked);
 		}
+	}
+
+	#[test]
+	#[cfg(feature = "ikm-management")]
+	fn delete_ikm() {
+		let mut lst = InputKeyMaterialList::new();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+
+		let latest_ikm = lst.get_latest_ikm().unwrap();
+		assert_eq!(latest_ikm.id, 2);
+
+		lst.delete_ikm(2);
+		let latest_ikm = lst.get_latest_ikm().unwrap();
+		assert_eq!(latest_ikm.id, 1);
+
+		lst.delete_ikm(1);
+		let res = lst.get_latest_ikm();
+		assert!(res.is_err());
 	}
 
 	#[test]
