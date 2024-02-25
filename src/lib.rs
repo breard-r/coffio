@@ -15,7 +15,7 @@ mod storage;
 pub use encryption::{decrypt, encrypt};
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
-pub use ikm::{InputKeyMaterialList, InputKeyMaterial, IkmId};
+pub use ikm::{IkmId, InputKeyMaterial, InputKeyMaterialList};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use scheme::Scheme;
 

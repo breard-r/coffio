@@ -158,6 +158,15 @@ impl InputKeyMaterialList {
 	}
 }
 
+#[cfg(feature = "ikm-management")]
+impl std::ops::Deref for InputKeyMaterialList {
+	type Target = Vec<InputKeyMaterial>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.ikm_lst
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -329,6 +338,20 @@ mod tests {
 		let _ = lst.revoke_ikm(1);
 		let res = lst.get_latest_ikm();
 		assert!(res.is_err());
+	}
+
+	#[test]
+	#[cfg(feature = "ikm-management")]
+	fn iterate() {
+		let mut lst = InputKeyMaterialList::new();
+		for _ in 0..10 {
+			let _ = lst.add_ikm();
+		}
+		let mut id = 1;
+		for ikm in lst.iter() {
+			assert_eq!(id, ikm.id);
+			id += 1;
+		}
 	}
 
 	#[test]
