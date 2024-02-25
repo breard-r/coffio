@@ -1,5 +1,5 @@
 use crate::error::{Error, Result};
-use crate::Scheme;
+use crate::scheme::{Scheme, SchemeSerializeType};
 use base64ct::{Base64UrlUnpadded, Encoding};
 use std::time::{Duration, SystemTime};
 
@@ -24,7 +24,7 @@ impl InputKeyMaterial {
 	fn as_bytes(&self) -> Result<[u8; IKM_STRUCT_SIZE]> {
 		let mut res = Vec::with_capacity(IKM_STRUCT_SIZE);
 		res.extend_from_slice(&self.id.to_le_bytes());
-		res.extend_from_slice(&(self.scheme as u32).to_le_bytes());
+		res.extend_from_slice(&(self.scheme as SchemeSerializeType).to_le_bytes());
 		res.extend_from_slice(&self.content);
 		res.extend_from_slice(
 			&self
@@ -47,7 +47,7 @@ impl InputKeyMaterial {
 	pub(crate) fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self> {
 		Ok(Self {
 			id: IkmId::from_le_bytes(b[0..4].try_into().unwrap()),
-			scheme: u32::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
+			scheme: SchemeSerializeType::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
 			content: b[8..40].try_into().unwrap(),
 			created_at: InputKeyMaterial::bytes_to_system_time(&b[40..48])?,
 			expire_at: InputKeyMaterial::bytes_to_system_time(&b[48..56])?,

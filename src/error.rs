@@ -1,4 +1,5 @@
 use crate::ikm::IkmId;
+use crate::scheme::SchemeSerializeType;
 
 pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
 
@@ -19,7 +20,7 @@ pub enum Error {
 	#[error("parsing error: ikm: invalid data length: {0} bytes")]
 	ParsingIkmInvalidLength(usize),
 	#[error("parsing error: scheme: {0}: unknown scheme")]
-	ParsingSchemeUnknownScheme(u32),
+	ParsingSchemeUnknownScheme(SchemeSerializeType),
 	#[error("unable to generate random values: {0}")]
 	RandomSourceError(getrandom::Error),
 	#[error("system time error: {0}")]
