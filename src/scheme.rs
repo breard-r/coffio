@@ -1,4 +1,4 @@
-use crate::encryption::EncryptionFunction;
+use crate::encryption::{DecryptionFunction, EncryptionFunction};
 use crate::kdf::KdfFunction;
 use crate::Error;
 
@@ -13,6 +13,14 @@ impl Scheme {
 	pub(crate) fn get_kdf(&self) -> Box<KdfFunction> {
 		match self {
 			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(crate::kdf::blake3_derive),
+		}
+	}
+
+	pub(crate) fn get_decryption(&self) -> Box<DecryptionFunction> {
+		match self {
+			Scheme::XChaCha20Poly1305WithBlake3 => {
+				Box::new(crate::encryption::xchacha20poly1305_decrypt)
+			}
 		}
 	}
 
