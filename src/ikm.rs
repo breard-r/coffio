@@ -99,6 +99,17 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(feature = "ikm-management")]
+	pub fn revoke_ikm(&mut self, id: IkmId) -> Result<()> {
+		let ikm = self
+			.ikm_lst
+			.iter_mut()
+			.find(|ikm| ikm.id == id)
+			.ok_or(Error::IkmNotFound(id))?;
+		ikm.is_revoked = true;
+		Ok(())
+	}
+
+	#[cfg(feature = "ikm-management")]
 	pub fn export(&self) -> Result<String> {
 		let data_size = (self.ikm_lst.len() * IKM_STRUCT_SIZE) + 4;
 		let mut data = Vec::with_capacity(data_size);
@@ -275,6 +286,25 @@ mod tests {
 			assert_eq!(el_bis.expire_at, round_time(el.expire_at));
 			assert_eq!(el_bis.is_revoked, el.is_revoked);
 		}
+	}
+
+	#[test]
+	#[cfg(feature = "ikm-management")]
+	fn revoke_ikm() {
+		let mut lst = InputKeyMaterialList::new();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+
+		let latest_ikm = lst.get_latest_ikm().unwrap();
+		assert_eq!(latest_ikm.id, 2);
+
+		let _ = lst.revoke_ikm(2);
+		let latest_ikm = lst.get_latest_ikm().unwrap();
+		assert_eq!(latest_ikm.id, 1);
+
+		let _ = lst.revoke_ikm(1);
+		let res = lst.get_latest_ikm();
+		assert!(res.is_err());
 	}
 
 	#[test]
