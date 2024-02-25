@@ -29,7 +29,7 @@ impl TryFrom<u32> for Scheme {
 	fn try_from(value: u32) -> Result<Self, Self::Error> {
 		match value {
 			1 => Ok(Scheme::XChaCha20Poly1305WithBlake3),
-			_ => Err(Error::ParsingUnknownScheme(value)),
+			_ => Err(Error::ParsingSchemeUnknownScheme(value)),
 		}
 	}
 }

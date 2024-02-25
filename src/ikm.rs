@@ -109,7 +109,7 @@ impl InputKeyMaterialList {
 	pub fn import(s: &str) -> Result<Self> {
 		let data = Base64UrlUnpadded::decode_vec(s)?;
 		if data.len() % IKM_STRUCT_SIZE != 4 {
-			return Err(Error::ParsingInvalidLength(data.len()));
+			return Err(Error::ParsingIkmInvalidLength(data.len()));
 		}
 		let mut ikm_lst = Vec::with_capacity(data.len() / IKM_STRUCT_SIZE);
 		for ikm_slice in data[4..].chunks_exact(IKM_STRUCT_SIZE) {

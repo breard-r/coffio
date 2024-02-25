@@ -10,14 +10,14 @@ pub enum Error {
 	IkmNotFound(u32),
 	#[error("parsing error: invalid base64-urlsafe-nopadding data: {0}")]
 	ParsingBase64Error(base64ct::Error),
-	#[error("parsing error: invalid data length: {0} bytes")]
-	ParsingInvalidLength(usize),
-	#[error("parsing error: {0}: unknown scheme")]
-	ParsingUnknownScheme(u32),
 	#[error("parsing error: encoded data: invalid IKM id: {0:?}")]
 	ParsingEncodedDataInvalidIkmId(Vec<u8>),
 	#[error("parsing error: encoded data: invalid number of parts: got {1} instead of {0}")]
 	ParsingEncodedDataInvalidPartLen(usize, usize),
+	#[error("parsing error: ikm: invalid data length: {0} bytes")]
+	ParsingIkmInvalidLength(usize),
+	#[error("parsing error: scheme: {0}: unknown scheme")]
+	ParsingSchemeUnknownScheme(u32),
 	#[error("unable to generate random values: {0}")]
 	RandomSourceError(getrandom::Error),
 	#[error("system time error: {0}")]
