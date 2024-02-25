@@ -27,17 +27,12 @@ Although this crate aim to reduce the risk of misuse, it is still possible to us
 
 ## Should I use this crate?
 
-No, absolutely not. It doesn't even work yet.
+Although it may work, some parts are not stabilized yet. Expect breaking change that may result in the total loss of previously encrypted data.
 
 ## Why should I use this crate instead of a symmetric encryption function?
 
-Cryptography is hard. Even if you have some knowledge about this topic and pay attention not no mess up, you will eventually mess-up anyway.
-
-Seriously, this crate is designed to prevent some of the most common pitfalls. If you don't see why you need this crate, you probably don't see those pitfalls and you will fall into it.
-
-## Why is the context so important?
-
-When correctly used, it prevents from a confused deputy attack. Chose wisely.
+1. Strong algorithms only. If you don't know which one to chose, Coffio provides strong defaults.
+2. Key management is hard. Coffio largely simplifies it in a way it becomes largely accessible.
 
 ## Why has this crate not been audited by a security professional?
 
