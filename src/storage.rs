@@ -1,6 +1,6 @@
 use crate::encryption::EncryptedData;
 use crate::error::{Error, Result};
-use crate::ikm::IkmId;
+use crate::ikm::{CounterId, IkmId, InputKeyMaterial, InputKeyMaterialList, IKM_BASE_STRUCT_SIZE};
 use base64ct::{Base64UrlUnpadded, Encoding};
 
 const STORAGE_SEPARATOR: &str = ":";
@@ -16,7 +16,20 @@ fn decode_data(s: &str) -> Result<Vec<u8>> {
 	Ok(Base64UrlUnpadded::decode_vec(s)?)
 }
 
-pub(crate) fn encode(ikm_id: IkmId, encrypted_data: &EncryptedData) -> String {
+pub(crate) fn encode_ikm_list(ikml: &InputKeyMaterialList) -> Result<String> {
+	let data_size = (ikml.ikm_lst.iter().fold(0, |acc, ikm| {
+		acc + IKM_BASE_STRUCT_SIZE + ikm.scheme.get_ikm_size()
+	})) + 4;
+	let mut ret = String::with_capacity(data_size);
+	ret += &encode_data(&ikml.id_counter.to_le_bytes());
+	for ikm in &ikml.ikm_lst {
+		ret += STORAGE_SEPARATOR;
+		ret += &encode_data(&ikm.as_bytes()?);
+	}
+	Ok(ret)
+}
+
+pub(crate) fn encode_cipher(ikm_id: IkmId, encrypted_data: &EncryptedData) -> String {
 	let mut ret = String::new();
 	ret += &encode_data(&ikm_id.to_le_bytes());
 	ret += STORAGE_SEPARATOR;
@@ -26,7 +39,26 @@ pub(crate) fn encode(ikm_id: IkmId, encrypted_data: &EncryptedData) -> String {
 	ret
 }
 
-pub(crate) fn decode(data: &str) -> Result<(IkmId, EncryptedData)> {
+pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
+	let v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
+	if v.is_empty() {
+		return Err(Error::ParsingEncodedDataInvalidIkmListLen(v.len()));
+	}
+	let id_data = decode_data(v[0])?;
+	let id_counter = CounterId::from_le_bytes(id_data[0..4].try_into().unwrap());
+	let mut ikm_lst = Vec::with_capacity(v.len() - 1);
+	for ikm_str in &v[1..] {
+		let raw_ikm = decode_data(ikm_str)?;
+		let ikm = InputKeyMaterial::from_bytes(&raw_ikm)?;
+		ikm_lst.push(ikm);
+	}
+	Ok(InputKeyMaterialList {
+		ikm_lst,
+		id_counter,
+	})
+}
+
+pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData)> {
 	let v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	if v.len() != NB_PARTS {
 		return Err(Error::ParsingEncodedDataInvalidPartLen(NB_PARTS, v.len()));
@@ -67,13 +99,13 @@ mod tests {
 			nonce: TEST_NONCE.into(),
 			ciphertext: TEST_CIPHERTEXT.into(),
 		};
-		let s = super::encode(TEST_IKM_ID, &data);
+		let s = super::encode_cipher(TEST_IKM_ID, &data);
 		assert_eq!(&s, TEST_STR);
 	}
 
 	#[test]
 	fn decode() {
-		let res = super::decode(TEST_STR);
+		let res = super::decode_cipher(TEST_STR);
 		assert!(res.is_ok());
 		let (id, data) = res.unwrap();
 		assert_eq!(id, TEST_IKM_ID);
@@ -87,8 +119,8 @@ mod tests {
 			nonce: TEST_NONCE.into(),
 			ciphertext: TEST_CIPHERTEXT.into(),
 		};
-		let s = super::encode(TEST_IKM_ID, &data);
-		let (id, decoded_data) = super::decode(&s).unwrap();
+		let s = super::encode_cipher(TEST_IKM_ID, &data);
+		let (id, decoded_data) = super::decode_cipher(&s).unwrap();
 		assert_eq!(id, TEST_IKM_ID);
 		assert_eq!(decoded_data.nonce, data.nonce);
 		assert_eq!(decoded_data.ciphertext, data.ciphertext);
@@ -96,8 +128,8 @@ mod tests {
 
 	#[test]
 	fn decode_encode() {
-		let (id, data) = super::decode(TEST_STR).unwrap();
-		let s = super::encode(id, &data);
+		let (id, data) = super::decode_cipher(TEST_STR).unwrap();
+		let s = super::encode_cipher(id, &data);
 		assert_eq!(&s, TEST_STR);
 	}
 }

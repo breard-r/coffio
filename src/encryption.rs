@@ -29,7 +29,7 @@ pub fn encrypt(
 	let aad = generate_aad(key_context, data_context);
 	let encryption_function = ikm.scheme.get_encryption();
 	let encrypted_data = encryption_function(&key, data.as_ref(), &aad)?;
-	Ok(storage::encode(ikm.id, &encrypted_data))
+	Ok(storage::encode_cipher(ikm.id, &encrypted_data))
 }
 
 pub fn decrypt(
@@ -38,7 +38,7 @@ pub fn decrypt(
 	stored_data: &str,
 	data_context: &[impl AsRef<[u8]>],
 ) -> Result<Vec<u8>> {
-	let (ikm_id, encrypted_data) = storage::decode(stored_data)?;
+	let (ikm_id, encrypted_data) = storage::decode_cipher(stored_data)?;
 	let ikm = ikml.get_ikm_by_id(ikm_id)?;
 	let key = derive_key(ikm, key_context);
 	let aad = generate_aad(key_context, data_context);
@@ -57,7 +57,7 @@ mod tests {
 
 	fn get_ikm_lst() -> InputKeyMaterialList {
 		InputKeyMaterialList::import(
-			"AQAAAAEAAAABAAAANGFtbdYEN0s7dzCfMm7dYeQWD64GdmuKsYSiKwppAhmkz81lAAAAACQDr2cAAAAAAA",
+			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA",
 		)
 		.unwrap()
 	}

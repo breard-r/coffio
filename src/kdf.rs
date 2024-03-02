@@ -22,7 +22,7 @@ mod tests {
 			0xd0, 0x65, 0x00, 0x00, 0x00, 0x00, 0x3d, 0x82, 0x6f, 0x8b, 0x00, 0x00, 0x00, 0x00,
 			0x00,
 		];
-		let ikm = InputKeyMaterial::from_bytes(ikm_raw).unwrap();
+		let ikm = InputKeyMaterial::from_bytes(&ikm_raw).unwrap();
 
 		let ctx = ["some", "context"];
 		assert_eq!(

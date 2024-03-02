@@ -15,10 +15,12 @@ pub enum Error {
 	ParsingBase64Error(base64ct::Error),
 	#[error("parsing error: encoded data: invalid IKM id: {0:?}")]
 	ParsingEncodedDataInvalidIkmId(Vec<u8>),
+	#[error("parsing error: encoded data: invalid IKM length{0}")]
+	ParsingEncodedDataInvalidIkmLen(usize),
+	#[error("parsing error: encoded data: invalid IKM list length{0}")]
+	ParsingEncodedDataInvalidIkmListLen(usize),
 	#[error("parsing error: encoded data: invalid number of parts: got {1} instead of {0}")]
 	ParsingEncodedDataInvalidPartLen(usize, usize),
-	#[error("parsing error: ikm: invalid data length: {0} bytes")]
-	ParsingIkmInvalidLength(usize),
 	#[error("parsing error: scheme: {0}: unknown scheme")]
 	ParsingSchemeUnknownScheme(SchemeSerializeType),
 	#[error("unable to generate random values: {0}")]

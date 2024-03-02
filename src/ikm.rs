@@ -1,10 +1,8 @@
 use crate::error::{Error, Result};
 use crate::scheme::{Scheme, SchemeSerializeType};
-use base64ct::{Base64UrlUnpadded, Encoding};
 use std::time::{Duration, SystemTime};
 
-const IKM_STRUCT_SIZE: usize = 57;
-const IKM_CONTENT_SIZE: usize = 32;
+pub(crate) const IKM_BASE_STRUCT_SIZE: usize = 25;
 
 pub(crate) type CounterId = u32;
 pub type IkmId = u32;
@@ -13,7 +11,7 @@ pub type IkmId = u32;
 pub struct InputKeyMaterial {
 	pub id: IkmId,
 	pub scheme: Scheme,
-	pub(crate) content: [u8; IKM_CONTENT_SIZE],
+	pub(crate) content: Vec<u8>,
 	pub created_at: SystemTime,
 	pub expire_at: SystemTime,
 	pub is_revoked: bool,
@@ -21,8 +19,8 @@ pub struct InputKeyMaterial {
 
 impl InputKeyMaterial {
 	#[cfg(feature = "ikm-management")]
-	fn as_bytes(&self) -> Result<[u8; IKM_STRUCT_SIZE]> {
-		let mut res = Vec::with_capacity(IKM_STRUCT_SIZE);
+	pub(crate) fn as_bytes(&self) -> Result<Vec<u8>> {
+		let mut res = Vec::with_capacity(IKM_BASE_STRUCT_SIZE + self.scheme.get_ikm_size());
 		res.extend_from_slice(&self.id.to_le_bytes());
 		res.extend_from_slice(&(self.scheme as SchemeSerializeType).to_le_bytes());
 		res.extend_from_slice(&self.content);
@@ -41,17 +39,26 @@ impl InputKeyMaterial {
 				.to_le_bytes(),
 		);
 		res.push(self.is_revoked as u8);
-		Ok(res.try_into().unwrap())
+		Ok(res)
 	}
 
-	pub(crate) fn from_bytes(b: [u8; IKM_STRUCT_SIZE]) -> Result<Self> {
+	pub(crate) fn from_bytes(b: &[u8]) -> Result<Self> {
+		if b.len() < IKM_BASE_STRUCT_SIZE {
+			return Err(Error::ParsingEncodedDataInvalidIkmLen(b.len()));
+		}
+		let scheme: Scheme =
+			SchemeSerializeType::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?;
+		let is = scheme.get_ikm_size();
+		if b.len() != IKM_BASE_STRUCT_SIZE + is {
+			return Err(Error::ParsingEncodedDataInvalidIkmLen(b.len()));
+		}
 		Ok(Self {
 			id: IkmId::from_le_bytes(b[0..4].try_into().unwrap()),
-			scheme: SchemeSerializeType::from_le_bytes(b[4..8].try_into().unwrap()).try_into()?,
-			content: b[8..40].try_into().unwrap(),
-			created_at: InputKeyMaterial::bytes_to_system_time(&b[40..48])?,
-			expire_at: InputKeyMaterial::bytes_to_system_time(&b[48..56])?,
-			is_revoked: b[56] != 0,
+			scheme,
+			content: b[8..8 + is].into(),
+			created_at: InputKeyMaterial::bytes_to_system_time(&b[8 + is..8 + is + 8])?,
+			expire_at: InputKeyMaterial::bytes_to_system_time(&b[8 + is + 8..8 + is + 8 + 8])?,
+			is_revoked: b[8 + is + 8 + 8] != 0,
 		})
 	}
 
@@ -66,8 +73,8 @@ impl InputKeyMaterial {
 
 #[derive(Debug, Default)]
 pub struct InputKeyMaterialList {
-	ikm_lst: Vec<InputKeyMaterial>,
-	id_counter: CounterId,
+	pub(crate) ikm_lst: Vec<InputKeyMaterial>,
+	pub(crate) id_counter: CounterId,
 }
 
 impl InputKeyMaterialList {
@@ -78,18 +85,22 @@ impl InputKeyMaterialList {
 
 	#[cfg(feature = "ikm-management")]
 	pub fn add_ikm(&mut self) -> Result<()> {
-		self.add_ikm_with_duration(Duration::from_secs(crate::DEFAULT_IKM_DURATION))
+		self.add_custom_ikm(
+			crate::DEFAULT_SCHEME,
+			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
+		)
 	}
 
 	#[cfg(feature = "ikm-management")]
-	pub fn add_ikm_with_duration(&mut self, duration: Duration) -> Result<()> {
-		let mut content: [u8; 32] = [0; 32];
-		getrandom::getrandom(&mut content)?;
+	pub fn add_custom_ikm(&mut self, scheme: Scheme, duration: Duration) -> Result<()> {
+		let ikm_len = scheme.get_ikm_size();
+		let mut content: Vec<u8> = vec![0; ikm_len];
+		getrandom::getrandom(content.as_mut_slice())?;
 		let created_at = SystemTime::now();
 		self.id_counter += 1;
 		self.ikm_lst.push(InputKeyMaterial {
 			id: self.id_counter,
-			scheme: crate::DEFAULT_SCHEME,
+			scheme,
 			created_at,
 			expire_at: created_at + duration,
 			is_revoked: false,
@@ -116,28 +127,11 @@ impl InputKeyMaterialList {
 
 	#[cfg(feature = "ikm-management")]
 	pub fn export(&self) -> Result<String> {
-		let data_size = (self.ikm_lst.len() * IKM_STRUCT_SIZE) + 4;
-		let mut data = Vec::with_capacity(data_size);
-		data.extend_from_slice(&self.id_counter.to_le_bytes());
-		for ikm in &self.ikm_lst {
-			data.extend_from_slice(&ikm.as_bytes()?);
-		}
-		Ok(Base64UrlUnpadded::encode_string(&data))
+		crate::storage::encode_ikm_list(self)
 	}
 
 	pub fn import(s: &str) -> Result<Self> {
-		let data = Base64UrlUnpadded::decode_vec(s)?;
-		if data.len() % IKM_STRUCT_SIZE != 4 {
-			return Err(Error::ParsingIkmInvalidLength(data.len()));
-		}
-		let mut ikm_lst = Vec::with_capacity(data.len() / IKM_STRUCT_SIZE);
-		for ikm_slice in data[4..].chunks_exact(IKM_STRUCT_SIZE) {
-			ikm_lst.push(InputKeyMaterial::from_bytes(ikm_slice.try_into().unwrap())?);
-		}
-		Ok(Self {
-			ikm_lst,
-			id_counter: CounterId::from_le_bytes(data[0..4].try_into().unwrap()),
-		})
+		crate::storage::decode_ikm_list(s)
 	}
 
 	#[cfg(feature = "encryption")]
@@ -195,7 +189,10 @@ mod tests {
 		assert_eq!(el.id, 1);
 		assert_eq!(el.is_revoked, false);
 
-		let res = lst.add_ikm();
+		let res = lst.add_custom_ikm(
+			Scheme::XChaCha20Poly1305WithBlake3,
+			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
+		);
 		assert!(res.is_ok());
 		assert_eq!(lst.id_counter, 2);
 		assert_eq!(lst.ikm_lst.len(), 2);
@@ -228,13 +225,13 @@ mod tests {
 		let res = lst.export();
 		assert!(res.is_ok());
 		let s = res.unwrap();
-		assert_eq!(s.len(), 82);
+		assert_eq!(s.len(), 83);
 	}
 
 	#[test]
 	fn import() {
 		let s =
-			"AQAAAAEAAAABAAAANGFtbdYEN0s7dzCfMm7dYeQWD64GdmuKsYSiKwppAhmkz81lAAAAACQDr2cAAAAAAA";
+			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::import(s);
 		assert!(res.is_ok());
 		let lst = res.unwrap();
@@ -246,8 +243,8 @@ mod tests {
 		assert_eq!(
 			ikm.content,
 			[
-				52, 97, 109, 109, 214, 4, 55, 75, 59, 119, 48, 159, 50, 110, 221, 97, 228, 22, 15,
-				174, 6, 118, 107, 138, 177, 132, 162, 43, 10, 105, 2, 25
+				191, 189, 129, 48, 214, 232, 213, 27, 152, 190, 10, 218, 15, 97, 44, 226, 147, 254,
+				177, 104, 10, 185, 246, 135, 99, 62, 110, 98, 143, 77, 126, 123
 			]
 		);
 		assert_eq!(ikm.is_revoked, false);
@@ -360,11 +357,16 @@ mod tests {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
-		let _ = lst.add_ikm();
+		let _ = lst.add_custom_ikm(
+			Scheme::XChaCha20Poly1305WithBlake3,
+			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
+		);
 		let res = lst.get_latest_ikm();
 		assert!(res.is_ok());
 		let latest_ikm = res.unwrap();
 		assert_eq!(latest_ikm.id, 3);
+		assert_eq!(latest_ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
+		assert_eq!(latest_ikm.content.len(), 32);
 	}
 
 	#[test]
