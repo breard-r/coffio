@@ -6,6 +6,7 @@ use crate::{storage, InputKeyMaterialList};
 pub(crate) type DecryptionFunction = dyn Fn(&[u8], &EncryptedData, &str) -> Result<Vec<u8>>;
 pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &str) -> Result<EncryptedData>;
 
+#[derive(Debug)]
 pub(crate) struct EncryptedData {
 	pub(crate) nonce: Vec<u8>,
 	pub(crate) ciphertext: Vec<u8>,
@@ -67,14 +68,14 @@ mod tests {
 		// Encrypt
 		let lst = get_ikm_lst();
 		let res = encrypt(&lst, &[], TEST_DATA, EMPTY_DATA_CTX);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
 		assert!(ciphertext.starts_with("AQAAAA:"));
 		assert_eq!(ciphertext.len(), 98);
 
 		// Decrypt
 		let res = decrypt(&lst, &[], &ciphertext, EMPTY_DATA_CTX);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let plaintext = res.unwrap();
 		assert_eq!(plaintext, TEST_DATA);
 	}
@@ -84,14 +85,14 @@ mod tests {
 		// Encrypt
 		let lst = get_ikm_lst();
 		let res = encrypt(&lst, TEST_KEY_CTX, TEST_DATA, TEST_DATA_CTX);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
 		assert!(ciphertext.starts_with("AQAAAA:"));
 		assert_eq!(ciphertext.len(), 98);
 
 		// Decrypt
 		let res = decrypt(&lst, TEST_KEY_CTX, &ciphertext, TEST_DATA_CTX);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let plaintext = res.unwrap();
 		assert_eq!(plaintext, TEST_DATA);
 	}

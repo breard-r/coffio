@@ -181,7 +181,7 @@ mod tests {
 		assert_eq!(lst.ikm_lst.len(), 0);
 
 		let res = lst.add_ikm();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		assert_eq!(lst.id_counter, 1);
 		assert_eq!(lst.ikm_lst.len(), 1);
 		assert!(lst.ikm_lst.first().is_some());
@@ -193,12 +193,12 @@ mod tests {
 			Scheme::XChaCha20Poly1305WithBlake3,
 			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
 		);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		assert_eq!(lst.id_counter, 2);
 		assert_eq!(lst.ikm_lst.len(), 2);
 
 		let res = lst.add_ikm();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		assert_eq!(lst.id_counter, 3);
 		assert_eq!(lst.ikm_lst.len(), 3);
 	}
@@ -211,7 +211,7 @@ mod tests {
 		assert_eq!(lst.ikm_lst.len(), 0);
 
 		let res = lst.export();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let s = res.unwrap();
 		assert_eq!(&s, "AAAAAA");
 	}
@@ -223,7 +223,7 @@ mod tests {
 		let _ = lst.add_ikm();
 
 		let res = lst.export();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let s = res.unwrap();
 		assert_eq!(s.len(), 83);
 	}
@@ -233,7 +233,7 @@ mod tests {
 		let s =
 			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::import(s);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
 		assert_eq!(lst.id_counter, 1);
 		assert_eq!(lst.ikm_lst.len(), 1);
@@ -256,11 +256,11 @@ mod tests {
 		let lst = InputKeyMaterialList::new();
 
 		let res = lst.export();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let s = res.unwrap();
 
 		let res = InputKeyMaterialList::import(&s);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let lst_bis = res.unwrap();
 		assert_eq!(lst_bis.id_counter, lst.id_counter);
 		assert_eq!(lst_bis.id_counter, 0);
@@ -277,11 +277,11 @@ mod tests {
 		}
 
 		let res = lst.export();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let s = res.unwrap();
 
 		let res = InputKeyMaterialList::import(&s);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let lst_bis = res.unwrap();
 		assert_eq!(lst_bis.id_counter, lst.id_counter);
 		assert_eq!(lst_bis.id_counter, 10);
@@ -362,7 +362,7 @@ mod tests {
 			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
 		);
 		let res = lst.get_latest_ikm();
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let latest_ikm = res.unwrap();
 		assert_eq!(latest_ikm.id, 3);
 		assert_eq!(latest_ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
@@ -386,7 +386,7 @@ mod tests {
 		let _ = lst.add_ikm();
 		for i in 1..=3 {
 			let res = lst.get_ikm_by_id(i);
-			assert!(res.is_ok());
+			assert!(res.is_ok(), "res: {res:?}");
 			let latest_ikm = res.unwrap();
 			assert_eq!(latest_ikm.id, i);
 		}

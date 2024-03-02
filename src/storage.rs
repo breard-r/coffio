@@ -106,7 +106,7 @@ mod tests {
 	#[test]
 	fn decode() {
 		let res = super::decode_cipher(TEST_STR);
-		assert!(res.is_ok());
+		assert!(res.is_ok(), "res: {res:?}");
 		let (id, data) = res.unwrap();
 		assert_eq!(id, TEST_IKM_ID);
 		assert_eq!(data.nonce, TEST_NONCE);
