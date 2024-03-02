@@ -16,6 +16,8 @@ pub use encryption::{decrypt, encrypt};
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use ikm::{IkmId, InputKeyMaterial, InputKeyMaterialList};
+#[cfg(feature = "encryption")]
+pub use kdf::KeyContext;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use scheme::Scheme;
 

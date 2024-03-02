@@ -3,8 +3,38 @@ use crate::ikm::InputKeyMaterial;
 
 pub(crate) type KdfFunction = dyn Fn(&str, &[u8]) -> Vec<u8>;
 
-pub(crate) fn derive_key(ikm: &InputKeyMaterial, key_context: &[&str]) -> Vec<u8> {
-	let key_context = canonicalize(key_context);
+pub struct KeyContext {
+	ctx: Vec<String>,
+	periodicity: Option<u64>,
+}
+
+impl KeyContext {
+	pub(crate) fn get_value(&self, ts: Option<u64>) -> Vec<Vec<u8>> {
+		let mut ret: Vec<Vec<u8>> = self.ctx.iter().map(|s| s.as_bytes().to_vec()).collect();
+		if let Some(p) = self.periodicity {
+			let ts = ts.unwrap_or(0);
+			let c = ts % p;
+			ret.push(c.to_le_bytes().to_vec());
+		}
+		ret
+	}
+
+	pub(crate) fn is_periodic(&self) -> bool {
+		self.periodicity.is_some()
+	}
+}
+
+impl<const N: usize> From<[&str; N]> for KeyContext {
+	fn from(ctx: [&str; N]) -> Self {
+		Self {
+			ctx: ctx.iter().map(|s| s.to_string()).collect(),
+			periodicity: None,
+		}
+	}
+}
+
+pub(crate) fn derive_key(ikm: &InputKeyMaterial, ctx: &KeyContext, ts: Option<u64>) -> Vec<u8> {
+	let key_context = canonicalize(&ctx.get_value(ts));
 	let kdf = ikm.scheme.get_kdf();
 	kdf(&key_context, &ikm.content)
 }
@@ -12,6 +42,7 @@ pub(crate) fn derive_key(ikm: &InputKeyMaterial, key_context: &[&str]) -> Vec<u8
 #[cfg(test)]
 mod tests {
 	use crate::ikm::InputKeyMaterial;
+	use crate::KeyContext;
 
 	#[test]
 	fn derive_key() {
@@ -24,9 +55,9 @@ mod tests {
 		];
 		let ikm = InputKeyMaterial::from_bytes(&ikm_raw).unwrap();
 
-		let ctx = ["some", "context"];
+		let ctx = KeyContext::from(["some", "context"]);
 		assert_eq!(
-			super::derive_key(&ikm, &ctx),
+			super::derive_key(&ikm, &ctx, None),
 			vec![
 				0xc1, 0xd2, 0xf0, 0xa7, 0x4d, 0xc5, 0x32, 0x6e, 0x89, 0x86, 0x85, 0xae, 0x3f, 0xdf,
 				0x16, 0x0b, 0xec, 0xe6, 0x63, 0x46, 0x41, 0x8a, 0x28, 0x2b, 0x04, 0xa1, 0x23, 0x20,

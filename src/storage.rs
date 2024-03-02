@@ -29,13 +29,21 @@ pub(crate) fn encode_ikm_list(ikml: &InputKeyMaterialList) -> Result<String> {
 	Ok(ret)
 }
 
-pub(crate) fn encode_cipher(ikm_id: IkmId, encrypted_data: &EncryptedData) -> String {
+pub(crate) fn encode_cipher(
+	ikm_id: IkmId,
+	encrypted_data: &EncryptedData,
+	ts: Option<u64>,
+) -> String {
 	let mut ret = String::new();
 	ret += &encode_data(&ikm_id.to_le_bytes());
 	ret += STORAGE_SEPARATOR;
 	ret += &encode_data(&encrypted_data.nonce);
 	ret += STORAGE_SEPARATOR;
 	ret += &encode_data(&encrypted_data.ciphertext);
+	if let Some(ts) = ts {
+		ret += STORAGE_SEPARATOR;
+		ret += &encode_data(&ts.to_le_bytes());
+	}
 	ret
 }
 
@@ -58,8 +66,23 @@ pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
 	})
 }
 
-pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData)> {
-	let v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
+pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData, Option<u64>)> {
+	let mut v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
+	let ts = if v.len() == NB_PARTS + 1 {
+		match v.pop() {
+			Some(ts_raw) => {
+				let ts_raw = decode_data(ts_raw)?;
+				let ts_raw: [u8; 8] = ts_raw
+					.clone()
+					.try_into()
+					.map_err(|_| Error::ParsingEncodedDataInvalidTimestamp(ts_raw))?;
+				Some(u64::from_le_bytes(ts_raw))
+			}
+			None => None,
+		}
+	} else {
+		None
+	};
 	if v.len() != NB_PARTS {
 		return Err(Error::ParsingEncodedDataInvalidPartLen(NB_PARTS, v.len()));
 	}
@@ -73,7 +96,7 @@ pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData)> {
 		nonce: decode_data(v[1])?,
 		ciphertext: decode_data(v[2])?,
 	};
-	Ok((id, encrypted_data))
+	Ok((id, encrypted_data, ts))
 }
 
 #[cfg(test)]
@@ -99,7 +122,7 @@ mod tests {
 			nonce: TEST_NONCE.into(),
 			ciphertext: TEST_CIPHERTEXT.into(),
 		};
-		let s = super::encode_cipher(TEST_IKM_ID, &data);
+		let s = super::encode_cipher(TEST_IKM_ID, &data, None);
 		assert_eq!(&s, TEST_STR);
 	}
 
@@ -107,10 +130,11 @@ mod tests {
 	fn decode() {
 		let res = super::decode_cipher(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");
-		let (id, data) = res.unwrap();
+		let (id, data, ts) = res.unwrap();
 		assert_eq!(id, TEST_IKM_ID);
 		assert_eq!(data.nonce, TEST_NONCE);
 		assert_eq!(data.ciphertext, TEST_CIPHERTEXT);
+		assert_eq!(ts, None);
 	}
 
 	#[test]
@@ -119,17 +143,18 @@ mod tests {
 			nonce: TEST_NONCE.into(),
 			ciphertext: TEST_CIPHERTEXT.into(),
 		};
-		let s = super::encode_cipher(TEST_IKM_ID, &data);
-		let (id, decoded_data) = super::decode_cipher(&s).unwrap();
+		let s = super::encode_cipher(TEST_IKM_ID, &data, None);
+		let (id, decoded_data, ts) = super::decode_cipher(&s).unwrap();
 		assert_eq!(id, TEST_IKM_ID);
 		assert_eq!(decoded_data.nonce, data.nonce);
 		assert_eq!(decoded_data.ciphertext, data.ciphertext);
+		assert_eq!(ts, None);
 	}
 
 	#[test]
 	fn decode_encode() {
-		let (id, data) = super::decode_cipher(TEST_STR).unwrap();
-		let s = super::encode_cipher(id, &data);
+		let (id, data, ts) = super::decode_cipher(TEST_STR).unwrap();
+		let s = super::encode_cipher(id, &data, ts);
 		assert_eq!(&s, TEST_STR);
 	}
 }

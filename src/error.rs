@@ -21,6 +21,8 @@ pub enum Error {
 	ParsingEncodedDataInvalidIkmListLen(usize),
 	#[error("parsing error: encoded data: invalid number of parts: got {1} instead of {0}")]
 	ParsingEncodedDataInvalidPartLen(usize, usize),
+	#[error("parsing error: encoded data: invalid timestamp: {0:?}")]
+	ParsingEncodedDataInvalidTimestamp(Vec<u8>),
 	#[error("parsing error: scheme: {0}: unknown scheme")]
 	ParsingSchemeUnknownScheme(SchemeSerializeType),
 	#[error("unable to generate random values: {0}")]
