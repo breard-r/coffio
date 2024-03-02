@@ -1,6 +1,7 @@
 mod canonicalization;
 #[cfg(feature = "encryption")]
 mod encryption;
+#[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod ikm;
@@ -13,6 +14,7 @@ mod storage;
 
 #[cfg(feature = "encryption")]
 pub use encryption::{decrypt, encrypt};
+#[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use ikm::{IkmId, InputKeyMaterial, InputKeyMaterialList};

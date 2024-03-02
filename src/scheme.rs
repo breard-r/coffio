@@ -1,8 +1,12 @@
+#[cfg(feature = "encryption")]
 use crate::encryption::{DecryptionFunction, EncryptionFunction};
+#[cfg(feature = "encryption")]
 use crate::kdf::KdfFunction;
 use crate::Error;
 
+#[cfg(feature = "encryption")]
 mod blake3;
+#[cfg(feature = "encryption")]
 mod xchacha20poly1305;
 
 pub(crate) type SchemeSerializeType = u32;
@@ -12,6 +16,7 @@ pub enum Scheme {
 	XChaCha20Poly1305WithBlake3 = 1,
 }
 
+#[cfg(feature = "encryption")]
 impl Scheme {
 	pub(crate) fn get_ikm_size(&self) -> usize {
 		match self {
