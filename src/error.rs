@@ -1,6 +1,3 @@
-use crate::ikm::IkmId;
-use crate::scheme::SchemeSerializeType;
-
 pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
 
 #[derive(thiserror::Error, Debug)]
@@ -10,7 +7,7 @@ pub enum Error {
 	#[error("ikm error: no input key material available")]
 	IkmNoneAvailable,
 	#[error("ikm error: {0}: input key material not found")]
-	IkmNotFound(IkmId),
+	IkmNotFound(crate::ikm::IkmId),
 	#[error("parsing error: invalid base64-urlsafe-nopadding data: {0}")]
 	ParsingBase64Error(base64ct::Error),
 	#[error("parsing error: encoded data: invalid IKM id: {0:?}")]
@@ -24,7 +21,7 @@ pub enum Error {
 	#[error("parsing error: encoded data: invalid timestamp: {0:?}")]
 	ParsingEncodedDataInvalidTimestamp(Vec<u8>),
 	#[error("parsing error: scheme: {0}: unknown scheme")]
-	ParsingSchemeUnknownScheme(SchemeSerializeType),
+	ParsingSchemeUnknownScheme(crate::scheme::SchemeSerializeType),
 	#[error("unable to generate random values: {0}")]
 	RandomSourceError(getrandom::Error),
 	#[error("system time error: {0}")]
