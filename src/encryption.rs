@@ -19,7 +19,8 @@ fn generate_aad(
 	data_context: &[impl AsRef<[u8]>],
 	time_period: Option<u64>,
 ) -> String {
-	let key_context_canon = canonicalize(&key_context.get_value(time_period));
+	let elems = key_context.get_ctx_elems(time_period);
+	let key_context_canon = canonicalize(&elems);
 	let data_context_canon = canonicalize(data_context);
 	join_canonicalized_str(&key_context_canon, &data_context_canon)
 }

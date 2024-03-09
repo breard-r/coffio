@@ -17,7 +17,7 @@ impl KeyContext {
 		self.periodicity = Some(periodicity);
 	}
 
-	pub(crate) fn get_value(&self, time_period: Option<u64>) -> Vec<Vec<u8>> {
+	pub(crate) fn get_ctx_elems(&self, time_period: Option<u64>) -> Vec<Vec<u8>> {
 		let mut ret: Vec<Vec<u8>> = self.ctx.iter().map(|s| s.as_bytes().to_vec()).collect();
 		if let Some(tp) = time_period {
 			ret.push(tp.to_le_bytes().to_vec());
@@ -48,7 +48,8 @@ pub(crate) fn derive_key(
 	ctx: &KeyContext,
 	time_period: Option<u64>,
 ) -> Vec<u8> {
-	let key_context = canonicalize(&ctx.get_value(time_period));
+	let elems = ctx.get_ctx_elems(time_period);
+	let key_context = canonicalize(&elems);
 	let kdf = ikm.scheme.get_kdf();
 	kdf(&key_context, &ikm.content)
 }
