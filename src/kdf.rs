@@ -9,6 +9,10 @@ pub struct KeyContext {
 }
 
 impl KeyContext {
+	pub fn set_static(&mut self) {
+		self.periodicity = None;
+	}
+
 	pub fn set_periodicity(&mut self, periodicity: u64) {
 		self.periodicity = Some(periodicity);
 	}
@@ -34,7 +38,7 @@ impl<const N: usize> From<[&str; N]> for KeyContext {
 	fn from(ctx: [&str; N]) -> Self {
 		Self {
 			ctx: ctx.iter().map(|s| s.to_string()).collect(),
-			periodicity: None,
+			periodicity: Some(crate::DEFAULT_KEY_CTX_PERIODICITY),
 		}
 	}
 }
