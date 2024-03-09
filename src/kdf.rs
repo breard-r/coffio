@@ -9,6 +9,10 @@ pub struct KeyContext {
 }
 
 impl KeyContext {
+	pub fn set_periodicity(&mut self, periodicity: u64) {
+		self.periodicity = Some(periodicity);
+	}
+
 	pub(crate) fn get_value(&self, time_period: Option<u64>) -> Vec<Vec<u8>> {
 		let mut ret: Vec<Vec<u8>> = self.ctx.iter().map(|s| s.as_bytes().to_vec()).collect();
 		if let Some(tp) = time_period {
