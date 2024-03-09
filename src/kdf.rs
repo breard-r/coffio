@@ -1,5 +1,6 @@
 use crate::canonicalization::canonicalize;
 use crate::ikm::InputKeyMaterial;
+use std::num::NonZeroU64;
 
 pub(crate) type KdfFunction = dyn Fn(&str, &[u8]) -> Vec<u8>;
 
@@ -13,8 +14,8 @@ impl KeyContext {
 		self.periodicity = None;
 	}
 
-	pub fn set_periodicity(&mut self, periodicity: u64) {
-		self.periodicity = Some(periodicity);
+	pub fn set_periodicity(&mut self, periodicity: NonZeroU64) {
+		self.periodicity = Some(periodicity.get());
 	}
 
 	pub(crate) fn get_ctx_elems(&self, time_period: Option<u64>) -> Vec<Vec<u8>> {
