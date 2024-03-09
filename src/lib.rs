@@ -13,7 +13,7 @@ mod scheme;
 mod storage;
 
 #[cfg(feature = "encryption")]
-pub use encryption::{decrypt, encrypt};
+pub use encryption::{decrypt, encrypt, DataContext};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
