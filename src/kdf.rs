@@ -9,14 +9,16 @@ pub struct KeyContext {
 }
 
 impl KeyContext {
-	pub(crate) fn get_value(&self, ts: Option<u64>) -> Vec<Vec<u8>> {
+	pub(crate) fn get_value(&self, time_period: Option<u64>) -> Vec<Vec<u8>> {
 		let mut ret: Vec<Vec<u8>> = self.ctx.iter().map(|s| s.as_bytes().to_vec()).collect();
-		if let Some(p) = self.periodicity {
-			let ts = ts.unwrap_or(0);
-			let c = ts % p;
-			ret.push(c.to_le_bytes().to_vec());
+		if let Some(tp) = time_period {
+			ret.push(tp.to_le_bytes().to_vec());
 		}
 		ret
+	}
+
+	pub(crate) fn get_time_period(&self, timestamp: u64) -> Option<u64> {
+		self.periodicity.map(|p| timestamp / p)
 	}
 
 	pub(crate) fn is_periodic(&self) -> bool {
@@ -33,8 +35,12 @@ impl<const N: usize> From<[&str; N]> for KeyContext {
 	}
 }
 
-pub(crate) fn derive_key(ikm: &InputKeyMaterial, ctx: &KeyContext, ts: Option<u64>) -> Vec<u8> {
-	let key_context = canonicalize(&ctx.get_value(ts));
+pub(crate) fn derive_key(
+	ikm: &InputKeyMaterial,
+	ctx: &KeyContext,
+	time_period: Option<u64>,
+) -> Vec<u8> {
+	let key_context = canonicalize(&ctx.get_value(time_period));
 	let kdf = ikm.scheme.get_kdf();
 	kdf(&key_context, &ikm.content)
 }

@@ -17,9 +17,9 @@ pub(crate) struct EncryptedData {
 fn generate_aad(
 	key_context: &KeyContext,
 	data_context: &[impl AsRef<[u8]>],
-	ts: Option<u64>,
+	time_period: Option<u64>,
 ) -> String {
-	let key_context_canon = canonicalize(&key_context.get_value(ts));
+	let key_context_canon = canonicalize(&key_context.get_value(time_period));
 	let data_context_canon = canonicalize(data_context);
 	join_canonicalized_str(&key_context_canon, &data_context_canon)
 }
@@ -30,17 +30,18 @@ pub fn encrypt(
 	data: impl AsRef<[u8]>,
 	data_context: &[impl AsRef<[u8]>],
 ) -> Result<String> {
-	let ts = if key_context.is_periodic() {
-		Some(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
+	let tp = if key_context.is_periodic() {
+		let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+		key_context.get_time_period(ts)
 	} else {
 		None
 	};
 	let ikm = ikml.get_latest_ikm()?;
-	let key = derive_key(ikm, key_context, ts);
-	let aad = generate_aad(key_context, data_context, ts);
+	let key = derive_key(ikm, key_context, tp);
+	let aad = generate_aad(key_context, data_context, tp);
 	let encryption_function = ikm.scheme.get_encryption();
 	let encrypted_data = encryption_function(&key, data.as_ref(), &aad)?;
-	Ok(storage::encode_cipher(ikm.id, &encrypted_data, ts))
+	Ok(storage::encode_cipher(ikm.id, &encrypted_data, tp))
 }
 
 pub fn decrypt(
@@ -49,10 +50,10 @@ pub fn decrypt(
 	stored_data: &str,
 	data_context: &[impl AsRef<[u8]>],
 ) -> Result<Vec<u8>> {
-	let (ikm_id, encrypted_data, ts) = storage::decode_cipher(stored_data)?;
+	let (ikm_id, encrypted_data, tp) = storage::decode_cipher(stored_data)?;
 	let ikm = ikml.get_ikm_by_id(ikm_id)?;
-	let key = derive_key(ikm, key_context, ts);
-	let aad = generate_aad(key_context, data_context, ts);
+	let key = derive_key(ikm, key_context, tp);
+	let aad = generate_aad(key_context, data_context, tp);
 	let decryption_function = ikm.scheme.get_decryption();
 	decryption_function(&key, &encrypted_data, &aad)
 }
