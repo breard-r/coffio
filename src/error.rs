@@ -10,6 +10,10 @@ pub enum Error {
 	IkmNotFound(crate::ikm::IkmId),
 	#[error("parsing error: invalid base64-urlsafe-nopadding data: {0}")]
 	ParsingBase64Error(base64ct::Error),
+	#[error("parsing error: encoded data: empty nonce")]
+	ParsingEncodedDataEmptyNonce,
+	#[error("parsing error: encoded data: empty ciphertext")]
+	ParsingEncodedDataEmptyCiphertext,
 	#[error("parsing error: encoded data: invalid IKM id: {0:?}")]
 	ParsingEncodedDataInvalidIkmId(Vec<u8>),
 	#[error("parsing error: encoded data: invalid IKM length{0}")]

@@ -96,6 +96,12 @@ pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData, Option<
 		nonce: decode_data(v[1])?,
 		ciphertext: decode_data(v[2])?,
 	};
+	if encrypted_data.nonce.is_empty() {
+		return Err(Error::ParsingEncodedDataEmptyNonce);
+	}
+	if encrypted_data.ciphertext.is_empty() {
+		return Err(Error::ParsingEncodedDataEmptyCiphertext);
+	}
 	Ok((id, encrypted_data, time_period))
 }
 
@@ -117,7 +123,7 @@ mod tests {
 	];
 
 	#[test]
-	fn encode() {
+	fn encode_cipher() {
 		let data = EncryptedData {
 			nonce: TEST_NONCE.into(),
 			ciphertext: TEST_CIPHERTEXT.into(),
@@ -127,7 +133,7 @@ mod tests {
 	}
 
 	#[test]
-	fn decode() {
+	fn decode_cipher() {
 		let res = super::decode_cipher(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");
 		let (id, data, tp) = res.unwrap();
@@ -138,7 +144,7 @@ mod tests {
 	}
 
 	#[test]
-	fn encode_decode() {
+	fn encode_decode_cipher() {
 		let data = EncryptedData {
 			nonce: TEST_NONCE.into(),
 			ciphertext: TEST_CIPHERTEXT.into(),
@@ -152,9 +158,39 @@ mod tests {
 	}
 
 	#[test]
-	fn decode_encode() {
+	fn decode_encode_cipher() {
 		let (id, data, tp) = super::decode_cipher(TEST_STR).unwrap();
 		let s = super::encode_cipher(id, &data, tp);
 		assert_eq!(&s, TEST_STR);
+	}
+
+	#[test]
+	fn decode_invalid_cipher() {
+		let tests = &[
+			// Missing parts
+			("", "empty data 1"),
+			(":", "empty data 2"),
+			("::", "empty data 3"),
+			(":a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing ikm id 1"),
+			("a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing ikm id 2"),
+			("KgAAAA:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing nonce 1"),
+			("KgAAAA::TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing nonce 2"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb", "missing ciphertext 1"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:", "missing ciphertext 2"),
+
+			// Invalid base64 parts
+			("KgAA.A:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid base64 ikm id"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKu@tqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid base64 nonce"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHK/xfnY-zR_bN", "invalid base64 ciphertext"),
+
+			// Invalid data length
+			("KgAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid ikm id data length"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid nonce data length"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR", "invalid ciphertext data length"),
+		];
+		for (ciphertext, error_str) in tests {
+			let res = super::decode_cipher(ciphertext);
+			assert!(res.is_err(), "failed error detection: {error_str}");
+		}
 	}
 }
