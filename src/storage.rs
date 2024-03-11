@@ -166,17 +166,25 @@ mod tests {
 
 	#[test]
 	fn decode_invalid_cipher() {
-		let tests = &[
+		let valid_tests = &[
+			"KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+			"KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:NaAAAAAAAAA",
+		];
+		let invalid_tests = &[
 			// Missing parts
 			("", "empty data 1"),
 			(":", "empty data 2"),
 			("::", "empty data 3"),
-			(":a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing ikm id 1"),
-			("a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing ikm id 2"),
-			("KgAAAA:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing nonce 1"),
-			("KgAAAA::TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing nonce 2"),
-			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb", "missing ciphertext 1"),
-			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:", "missing ciphertext 2"),
+			(":::", "empty data 4"),
+			("a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing ikm id"),
+			("KgAAAA:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing nonce"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb", "missing ciphertext"),
+
+			// Empty parts
+			(":a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "empty ikm id"),
+			("KgAAAA::TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "empty nonce"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:", "empty ciphertext"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:", "empty time period"),
 
 			// Invalid base64 parts
 			("KgAA.A:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid base64 ikm id"),
@@ -187,8 +195,13 @@ mod tests {
 			("KgAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid ikm id data length"),
 			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid nonce data length"),
 			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR", "invalid ciphertext data length"),
+			("KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:AQAAAA", "invalid time period length"),
 		];
-		for (ciphertext, error_str) in tests {
+		for ciphertext in valid_tests {
+			let res = super::decode_cipher(ciphertext);
+			assert!(res.is_ok(), "invalid reference ciphertext");
+		}
+		for (ciphertext, error_str) in invalid_tests {
 			let res = super::decode_cipher(ciphertext);
 			assert!(res.is_err(), "failed error detection: {error_str}");
 		}
