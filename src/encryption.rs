@@ -82,6 +82,7 @@ mod tests {
 	use super::*;
 	use crate::{DataContext, KeyContext};
 
+	const TEST_CIPHERTEXT: &str = "AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA";
 	const TEST_DATA: &[u8] = b"Lorem ipsum dolor sit amet.";
 	const TEST_KEY_CTX: [&str; 3] = ["db_name", "table_name", "column_name"];
 	const TEST_DATA_CTX: [&str; 1] = ["018db876-3d9d-79af-9460-55d17da991d8"];
@@ -163,5 +164,50 @@ mod tests {
 		assert!(res.is_ok(), "res: {res:?}");
 		let plaintext = res.unwrap();
 		assert_eq!(plaintext, TEST_DATA);
+	}
+
+	#[test]
+	fn decrypt_invalid_ciphertext() {
+		let tests = &[
+			("", "empty data"),
+			("AQAATA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA", "unknown ikm id"),
+			("AQAAAA:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA", "invalid nonce"),
+			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:8izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA", "invalid ciphertext"),
+			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NaAAAAAAAAA", "invalid time period"),
+			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:", "empty time period"),
+			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A", "missing time period"),
+		];
+
+		let lst = get_ikm_lst();
+		let key_ctx = KeyContext::from(TEST_KEY_CTX);
+		let data_ctx = DataContext::from(TEST_DATA_CTX);
+
+		// Test if the reference ciphertext used for the tests is actually valid
+		let res = decrypt(&lst, &key_ctx, TEST_CIPHERTEXT, &data_ctx);
+		assert!(res.is_ok(), "invalid reference ciphertext");
+
+		// Test if altered versions of the reference ciphertext are refused
+		for (ciphertext, error_str) in tests {
+			let res = decrypt(&lst, &key_ctx, ciphertext, &data_ctx);
+			assert!(res.is_err(), "failed error detection: {error_str}");
+		}
+	}
+
+	#[test]
+	fn invalid_context() {
+		let lst = get_ikm_lst();
+		let key_ctx = KeyContext::from(TEST_KEY_CTX);
+		let data_ctx = DataContext::from(TEST_DATA_CTX);
+
+		let res = decrypt(&lst, &key_ctx, TEST_CIPHERTEXT, &data_ctx);
+		assert!(res.is_ok(), "invalid reference ciphertext");
+
+		let invalid_key_ctx = KeyContext::from(["invalid", "key", "context"]);
+		let res = decrypt(&lst, &invalid_key_ctx, TEST_CIPHERTEXT, &data_ctx);
+		assert!(res.is_err(), "failed error detection: invalid key context");
+
+		let invalid_data_ctx = DataContext::from(["invalid", "data", "context"]);
+		let res = decrypt(&lst, &key_ctx, TEST_CIPHERTEXT, &invalid_data_ctx);
+		assert!(res.is_err(), "failed error detection: invalid key context");
 	}
 }
