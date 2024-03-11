@@ -1,11 +1,12 @@
 use crate::canonicalization::{canonicalize, join_canonicalized_str};
 use crate::error::Result;
 use crate::kdf::{derive_key, KeyContext};
-use crate::{storage, InputKeyMaterialList};
+use crate::{storage, IkmId, InputKeyMaterialList};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) type DecryptionFunction = dyn Fn(&[u8], &EncryptedData, &str) -> Result<Vec<u8>>;
-pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &str) -> Result<EncryptedData>;
+pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &[u8], &str) -> Result<EncryptedData>;
+pub(crate) type GenNonceFunction = dyn Fn() -> Result<Vec<u8>>;
 
 pub struct DataContext {
 	ctx: Vec<String>,
@@ -33,14 +34,23 @@ pub(crate) struct EncryptedData {
 
 #[inline]
 fn generate_aad(
+	ikm_id: IkmId,
+	nonce: &[u8],
 	key_context: &KeyContext,
 	data_context: &DataContext,
 	time_period: Option<u64>,
 ) -> String {
+	let ikm_id_canon = canonicalize(&[ikm_id.to_le_bytes()]);
+	let nonce_canon = canonicalize(&[nonce]);
 	let elems = key_context.get_ctx_elems(time_period);
 	let key_context_canon = canonicalize(&elems);
 	let data_context_canon = canonicalize(data_context.get_ctx_elems());
-	join_canonicalized_str(&key_context_canon, &data_context_canon)
+	join_canonicalized_str(&[
+		ikm_id_canon,
+		nonce_canon,
+		key_context_canon,
+		data_context_canon,
+	])
 }
 
 pub fn encrypt(
@@ -57,9 +67,11 @@ pub fn encrypt(
 	};
 	let ikm = ikml.get_latest_ikm()?;
 	let key = derive_key(ikm, key_context, tp);
-	let aad = generate_aad(key_context, data_context, tp);
+	let gen_nonce_function = ikm.scheme.get_gen_nonce();
+	let nonce = gen_nonce_function()?;
+	let aad = generate_aad(ikm.id, &nonce, key_context, data_context, tp);
 	let encryption_function = ikm.scheme.get_encryption();
-	let encrypted_data = encryption_function(&key, data.as_ref(), &aad)?;
+	let encrypted_data = encryption_function(&key, &nonce, data.as_ref(), &aad)?;
 	Ok(storage::encode_cipher(ikm.id, &encrypted_data, tp))
 }
 
@@ -72,7 +84,7 @@ pub fn decrypt(
 	let (ikm_id, encrypted_data, tp) = storage::decode_cipher(stored_data)?;
 	let ikm = ikml.get_ikm_by_id(ikm_id)?;
 	let key = derive_key(ikm, key_context, tp);
-	let aad = generate_aad(key_context, data_context, tp);
+	let aad = generate_aad(ikm.id, &encrypted_data.nonce, key_context, data_context, tp);
 	let decryption_function = ikm.scheme.get_decryption();
 	decryption_function(&key, &encrypted_data, &aad)
 }
@@ -82,7 +94,7 @@ mod tests {
 	use super::*;
 	use crate::{DataContext, KeyContext};
 
-	const TEST_CIPHERTEXT: &str = "AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA";
+	const TEST_CIPHERTEXT: &str = "AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA";
 	const TEST_DATA: &[u8] = b"Lorem ipsum dolor sit amet.";
 	const TEST_KEY_CTX: [&str; 3] = ["db_name", "table_name", "column_name"];
 	const TEST_DATA_CTX: [&str; 1] = ["018db876-3d9d-79af-9460-55d17da991d8"];
@@ -170,12 +182,12 @@ mod tests {
 	fn decrypt_invalid_ciphertext() {
 		let tests = &[
 			("", "empty data"),
-			("AQAATA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA", "unknown ikm id"),
-			("AQAAAA:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA", "invalid nonce"),
-			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:8izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NgAAAAAAAAA", "invalid ciphertext"),
-			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:NaAAAAAAAAA", "invalid time period"),
-			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A:", "empty time period"),
-			("AQAAAA:elFanOvp5DNewgq75T5U6wLYNn8zzo1n:9izU-8cw4oSIU4lqcYrfEBzOXluS7lVcUbF_KnEg0HFp2srx6xq3Bir91A", "missing time period"),
+			("AQAATA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA", "unknown ikm id"),
+			("AQAAAA:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA", "invalid nonce"),
+			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:8e_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA", "invalid ciphertext"),
+			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NaAAAAAAAAA", "invalid time period"),
+			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:", "empty time period"),
+			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg", "missing time period"),
 		];
 
 		let lst = get_ikm_lst();

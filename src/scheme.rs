@@ -1,5 +1,5 @@
 #[cfg(feature = "encryption")]
-use crate::encryption::{DecryptionFunction, EncryptionFunction};
+use crate::encryption::{DecryptionFunction, EncryptionFunction, GenNonceFunction};
 #[cfg(feature = "encryption")]
 use crate::kdf::KdfFunction;
 use crate::Error;
@@ -42,6 +42,14 @@ impl Scheme {
 		match self {
 			Scheme::XChaCha20Poly1305WithBlake3 => {
 				Box::new(xchacha20poly1305::xchacha20poly1305_encrypt)
+			}
+		}
+	}
+
+	pub(crate) fn get_gen_nonce(&self) -> Box<GenNonceFunction> {
+		match self {
+			Scheme::XChaCha20Poly1305WithBlake3 => {
+				Box::new(xchacha20poly1305::xchacha20poly1305_gen_nonce)
 			}
 		}
 	}

@@ -3,18 +3,22 @@ use crate::error::Result;
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
 
+pub(crate) fn xchacha20poly1305_gen_nonce() -> Result<Vec<u8>> {
+	// X-variant: the nonce's size is 192 bits (24 bytes)
+	let mut nonce: [u8; 24] = [0; 24];
+	getrandom::getrandom(&mut nonce)?;
+	Ok(nonce.to_vec())
+}
+
 pub(crate) fn xchacha20poly1305_encrypt(
 	key: &[u8],
+	nonce: &[u8],
 	data: &[u8],
 	aad: &str,
 ) -> Result<EncryptedData> {
-	// Adapt the key
+	// Adapt the key and nonce
 	let key = Key::from_slice(key);
-
-	// Generate a nonce
-	let mut nonce: [u8; 24] = [0; 24];
-	getrandom::getrandom(&mut nonce)?;
-	let nonce = XNonce::from_slice(&nonce);
+	let nonce = XNonce::from_slice(nonce);
 
 	// Prepare the payload
 	let payload = Payload {

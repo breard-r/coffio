@@ -4,8 +4,8 @@ const CANONICALIZATION_BUFFER_SIZE: usize = 1024;
 const CANONICALIZATION_SEPARATOR: &str = ":";
 
 #[inline]
-pub(crate) fn join_canonicalized_str(s1: &str, s2: &str) -> String {
-	format!("{s1}{CANONICALIZATION_SEPARATOR}{s2}")
+pub(crate) fn join_canonicalized_str(elems: &[String]) -> String {
+	elems.join(CANONICALIZATION_SEPARATOR)
 }
 
 pub(crate) fn canonicalize(context: &[impl AsRef<[u8]>]) -> String {
@@ -51,13 +51,31 @@ mod tests {
 
 	#[test]
 	fn test_join_canonicalized_empty() {
-		assert_eq!(join_canonicalized_str("", ""), ":");
+		assert_eq!(join_canonicalized_str(&[]), "");
+	}
+
+	#[test]
+	fn test_join_canonicalized_one() {
+		assert_eq!(
+			join_canonicalized_str(&["QWO7RGDt".to_string()]),
+			"QWO7RGDt"
+		);
+	}
+
+	#[test]
+	fn test_join_canonicalized_one_empty() {
+		assert_eq!(join_canonicalized_str(&[String::new()]), "");
+	}
+
+	#[test]
+	fn test_join_canonicalized_empty_str() {
+		assert_eq!(join_canonicalized_str(&[String::new(), String::new()]), ":");
 	}
 
 	#[test]
 	fn test_join_canonicalized_with_data() {
 		assert_eq!(
-			join_canonicalized_str("QWO7RGDt:f-JmDPvU", "_Sfx61Fp"),
+			join_canonicalized_str(&["QWO7RGDt:f-JmDPvU".into(), "_Sfx61Fp".into()]),
 			"QWO7RGDt:f-JmDPvU:_Sfx61Fp"
 		);
 	}
