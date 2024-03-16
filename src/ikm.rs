@@ -136,10 +136,11 @@ impl InputKeyMaterialList {
 
 	#[cfg(feature = "encryption")]
 	pub(crate) fn get_latest_ikm(&self) -> Result<&InputKeyMaterial> {
+		let now = SystemTime::now();
 		self.ikm_lst
 			.iter()
 			.rev()
-			.find(|&ikm| !ikm.is_revoked && ikm.created_at < SystemTime::now())
+			.find(|&ikm| !ikm.is_revoked && ikm.created_at < now && ikm.expire_at > now)
 			.ok_or(Error::IkmNoneAvailable)
 	}
 
