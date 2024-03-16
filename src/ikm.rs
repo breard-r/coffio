@@ -165,7 +165,54 @@ impl std::ops::Deref for InputKeyMaterialList {
 mod tests {
 	use super::*;
 
-	#[cfg(feature = "ikm-management")]
+	#[test]
+	fn import() {
+		let s =
+			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+		let res = InputKeyMaterialList::import(s);
+		assert!(res.is_ok(), "res: {res:?}");
+		let lst = res.unwrap();
+		assert_eq!(lst.id_counter, 1);
+		assert_eq!(lst.ikm_lst.len(), 1);
+		let ikm = lst.ikm_lst.first().unwrap();
+		assert_eq!(ikm.id, 1);
+		assert_eq!(ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
+		assert_eq!(
+			ikm.content,
+			[
+				191, 189, 129, 48, 214, 232, 213, 27, 152, 190, 10, 218, 15, 97, 44, 226, 147, 254,
+				177, 104, 10, 185, 246, 135, 99, 62, 110, 98, 143, 77, 126, 123
+			]
+		);
+		assert_eq!(ikm.is_revoked, false);
+	}
+}
+
+#[cfg(all(test, feature = "ikm-management"))]
+mod ikm_management {
+	use super::*;
+
+	// This list contains the folowing IKM:
+	// 1: * created_at: Monday 1 April 2019 10:21:42
+	//    * expire_at: Wednesday 1 April 2020 10:21:42
+	//    * is_revoked: true
+	// 2: * created_at: Thursday 12 March 2020 10:21:42
+	//    * expire_at: Friday 12 March 2021 10:21:42
+	//    * is_revoked: false
+	// 3: * created_at: Sunday 21 February 2021 10:21:42
+	//    * expire_at: Thursday 10 February 2180 10:21:42
+	//    * is_revoked: false
+	// 4: * created_at: Sunday 30 January 2022 10:21:42
+	//    * expire_at: Tuesday 10 January 2023 10:21:42
+	//    * is_revoked: false
+	// 5: * created_at: Tuesday 2 January 2024 10:21:42
+	//    * expire_at: Tuesday 6 June 2180 10:21:42
+	//    * is_revoked: true
+	// 6: * created_at: Tuesday 15 August 2180 10:21:42
+	//    * expire_at: Wednesday 15 August 2181 10:21:42
+	//    * is_revoked: false
+	const TEST_STR: &str = "BgAAAA:AQAAAAEAAACUAPcqngJ46_HMtJSdIw-WeUtImcCVxOA47n6UIN5K2TbmoVwAAAAANmuEXgAAAAAB:AgAAAAEAAADf7CR8vl_aWOUyfsO0ek0YQr_Yi7L_sJmF2nIt_XOaCzYNal4AAAAAtkBLYAAAAAAA:AwAAAAEAAAAMoNIW9gIGkzegUDEsU3N1Rf_Zz0OMuylUSiQjUzLXqzY0MmAAAAAANsk0iwEAAAAA:BAAAAAEAAABbwRrMz3x3DkfOEFg1BHfLLRHoNqg6d_xGWwdh48hH8rZm9mEAAAAANjy9YwAAAAAA:BQAAAAEAAAA2LwnTgDUF7qn7dy79VA24JSSgo6vllAtU5zmhrxNJu7YIz4sBAAAANoUMjgEAAAAB:BgAAAAEAAAAn0Vqe2f9YRXBt6xVYaeSLs0Gf0S0_5B-hk-a2b0rhlraCJbwAAAAAtlErjAEAAAAA";
+
 	fn round_time(t: SystemTime) -> SystemTime {
 		let secs = t.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 		SystemTime::UNIX_EPOCH
@@ -174,7 +221,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn gen_ikm_list() {
 		let mut lst = InputKeyMaterialList::new();
 		assert_eq!(lst.id_counter, 0);
@@ -204,7 +250,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn export_empty() {
 		let lst = InputKeyMaterialList::new();
 		assert_eq!(lst.id_counter, 0);
@@ -217,7 +262,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn export() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -230,28 +274,14 @@ mod tests {
 
 	#[test]
 	fn import() {
-		let s =
-			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
-		let res = InputKeyMaterialList::import(s);
+		let res = InputKeyMaterialList::import(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
-		assert_eq!(lst.id_counter, 1);
-		assert_eq!(lst.ikm_lst.len(), 1);
-		let ikm = lst.ikm_lst.first().unwrap();
-		assert_eq!(ikm.id, 1);
-		assert_eq!(ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
-		assert_eq!(
-			ikm.content,
-			[
-				191, 189, 129, 48, 214, 232, 213, 27, 152, 190, 10, 218, 15, 97, 44, 226, 147, 254,
-				177, 104, 10, 185, 246, 135, 99, 62, 110, 98, 143, 77, 126, 123
-			]
-		);
-		assert_eq!(ikm.is_revoked, false);
+		assert_eq!(lst.id_counter, 6);
+		assert_eq!(lst.ikm_lst.len(), 6);
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn export_import_empty() {
 		let lst = InputKeyMaterialList::new();
 
@@ -269,7 +299,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn export_import() {
 		let mut lst = InputKeyMaterialList::new();
 		for _ in 0..10 {
@@ -300,7 +329,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn delete_ikm() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -319,7 +347,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn revoke_ikm() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -338,7 +365,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
 	fn iterate() {
 		let mut lst = InputKeyMaterialList::new();
 		for _ in 0..10 {
@@ -352,7 +378,22 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "encryption")]
+	fn get_latest_ikm() {
+		let res = InputKeyMaterialList::import(TEST_STR);
+		assert!(res.is_ok(), "res: {res:?}");
+		let lst = res.unwrap();
+		let res = lst.get_latest_ikm();
+		assert!(res.is_ok(), "res: {res:?}");
+		let ikm = res.unwrap();
+		assert_eq!(ikm.id, 3);
+	}
+}
+
+#[cfg(all(test, feature = "encryption"))]
+mod encryption {
+	use super::*;
+
+	#[test]
 	fn get_latest_ikm() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -370,7 +411,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "encryption")]
 	fn get_latest_ikm_empty() {
 		let lst = InputKeyMaterialList::new();
 		let res = lst.get_latest_ikm();
@@ -378,7 +418,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "encryption")]
 	fn get_ikm_by_id() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -393,7 +432,6 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg(feature = "encryption")]
 	fn get_ikm_by_id_noexists() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
