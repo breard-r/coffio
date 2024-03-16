@@ -53,6 +53,9 @@ pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
 		return Err(Error::ParsingEncodedDataInvalidIkmListLen(v.len()));
 	}
 	let id_data = decode_data(v[0])?;
+	if id_data.len() != 4 {
+		return Err(Error::ParsingEncodedDataInvalidIkmListId(id_data));
+	}
 	let id_counter = CounterId::from_le_bytes(id_data[0..4].try_into().unwrap());
 	let mut ikm_lst = Vec::with_capacity(v.len() - 1);
 	for ikm_str in &v[1..] {

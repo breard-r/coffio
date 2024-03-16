@@ -18,6 +18,8 @@ pub enum Error {
 	ParsingEncodedDataInvalidIkmId(Vec<u8>),
 	#[error("parsing error: encoded data: invalid IKM length{0}")]
 	ParsingEncodedDataInvalidIkmLen(usize),
+	#[error("parsing error: encoded data: invalid IKM list id: {0:?}")]
+	ParsingEncodedDataInvalidIkmListId(Vec<u8>),
 	#[error("parsing error: encoded data: invalid IKM list length{0}")]
 	ParsingEncodedDataInvalidIkmListLen(usize),
 	#[error("parsing error: encoded data: invalid number of parts: got {1} instead of {0}")]
