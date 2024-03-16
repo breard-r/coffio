@@ -1,9 +1,15 @@
+#[cfg(feature = "encryption")]
 use crate::encryption::EncryptedData;
 use crate::error::{Error, Result};
-use crate::ikm::{CounterId, IkmId, InputKeyMaterial, InputKeyMaterialList, IKM_BASE_STRUCT_SIZE};
+#[cfg(feature = "encryption")]
+use crate::ikm::IkmId;
+#[cfg(feature = "ikm-management")]
+use crate::ikm::IKM_BASE_STRUCT_SIZE;
+use crate::ikm::{CounterId, InputKeyMaterial, InputKeyMaterialList};
 use base64ct::{Base64UrlUnpadded, Encoding};
 
 const STORAGE_SEPARATOR: &str = ":";
+#[cfg(feature = "encryption")]
 const NB_PARTS: usize = 3;
 
 #[inline]
@@ -16,6 +22,7 @@ fn decode_data(s: &str) -> Result<Vec<u8>> {
 	Ok(Base64UrlUnpadded::decode_vec(s)?)
 }
 
+#[cfg(feature = "ikm-management")]
 pub(crate) fn encode_ikm_list(ikml: &InputKeyMaterialList) -> Result<String> {
 	let data_size = (ikml.ikm_lst.iter().fold(0, |acc, ikm| {
 		acc + IKM_BASE_STRUCT_SIZE + ikm.scheme.get_ikm_size()
@@ -29,6 +36,7 @@ pub(crate) fn encode_ikm_list(ikml: &InputKeyMaterialList) -> Result<String> {
 	Ok(ret)
 }
 
+#[cfg(feature = "encryption")]
 pub(crate) fn encode_cipher(
 	ikm_id: IkmId,
 	encrypted_data: &EncryptedData,
@@ -69,6 +77,7 @@ pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
 	})
 }
 
+#[cfg(feature = "encryption")]
 pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData, Option<u64>)> {
 	let mut v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	let time_period = if v.len() == NB_PARTS + 1 {
@@ -108,10 +117,8 @@ pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData, Option<
 	Ok((id, encrypted_data, time_period))
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "ikm-management"))]
 mod ikm_lst {
-	use crate::InputKeyMaterialList;
-
 	const TEST_STR: &str = "BgAAAA:AQAAAAEAAACUAPcqngJ46_HMtJSdIw-WeUtImcCVxOA47n6UIN5K2TbmoVwAAAAANmuEXgAAAAAB:AgAAAAEAAADf7CR8vl_aWOUyfsO0ek0YQr_Yi7L_sJmF2nIt_XOaCzYNal4AAAAAtkBLYAAAAAAA:AwAAAAEAAAAMoNIW9gIGkzegUDEsU3N1Rf_Zz0OMuylUSiQjUzLXqzY0MmAAAAAANsk0iwEAAAAA:BAAAAAEAAABbwRrMz3x3DkfOEFg1BHfLLRHoNqg6d_xGWwdh48hH8rZm9mEAAAAANjy9YwAAAAAA:BQAAAAEAAAA2LwnTgDUF7qn7dy79VA24JSSgo6vllAtU5zmhrxNJu7YIz4sBAAAANoUMjgEAAAAB:BgAAAAEAAAAn0Vqe2f9YRXBt6xVYaeSLs0Gf0S0_5B-hk-a2b0rhlraCJbwAAAAAtlErjAEAAAAA";
 	const TEST_CTN_0: &[u8] = &[
 		0x94, 0x00, 0xf7, 0x2a, 0x9e, 0x02, 0x78, 0xeb, 0xf1, 0xcc, 0xb4, 0x94, 0x9d, 0x23, 0x0f,
@@ -154,6 +161,7 @@ mod ikm_lst {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn encode() {
 		use std::time::{Duration, SystemTime};
 		let bytes_to_system_time = |ts: u64| {
@@ -161,7 +169,7 @@ mod ikm_lst {
 				.checked_add(Duration::from_secs(ts))
 				.unwrap()
 		};
-		let mut lst = InputKeyMaterialList::new();
+		let mut lst = crate::InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		lst.ikm_lst[0].content = TEST_CTN_0.to_vec();
 		lst.ikm_lst[0].created_at = bytes_to_system_time(1554114102);
@@ -232,8 +240,9 @@ mod ikm_lst {
 	}
 
 	#[test]
+	#[cfg(feature = "ikm-management")]
 	fn encode_decode() {
-		let mut lst = InputKeyMaterialList::new();
+		let mut lst = crate::InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
@@ -293,7 +302,7 @@ mod ikm_lst {
 	}
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "encryption"))]
 mod ciphers {
 	use crate::ikm::IkmId;
 	use crate::storage::EncryptedData;

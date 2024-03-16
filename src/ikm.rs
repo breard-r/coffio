@@ -74,6 +74,7 @@ impl InputKeyMaterial {
 #[derive(Debug, Default)]
 pub struct InputKeyMaterialList {
 	pub(crate) ikm_lst: Vec<InputKeyMaterial>,
+	#[allow(dead_code)]
 	pub(crate) id_counter: CounterId,
 }
 
@@ -134,7 +135,7 @@ impl InputKeyMaterialList {
 		crate::storage::decode_ikm_list(s)
 	}
 
-	#[cfg(feature = "encryption")]
+	#[cfg(any(test, feature = "encryption"))]
 	pub(crate) fn get_latest_ikm(&self) -> Result<&InputKeyMaterial> {
 		let now = SystemTime::now();
 		self.ikm_lst
@@ -390,7 +391,7 @@ mod ikm_management {
 	}
 }
 
-#[cfg(all(test, feature = "encryption"))]
+#[cfg(all(test, feature = "encryption", feature = "ikm-management"))]
 mod encryption {
 	use super::*;
 

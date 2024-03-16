@@ -16,14 +16,16 @@ pub enum Scheme {
 	XChaCha20Poly1305WithBlake3 = 1,
 }
 
-#[cfg(feature = "encryption")]
 impl Scheme {
 	pub(crate) fn get_ikm_size(&self) -> usize {
 		match self {
 			Scheme::XChaCha20Poly1305WithBlake3 => 32,
 		}
 	}
+}
 
+#[cfg(feature = "encryption")]
+impl Scheme {
 	pub(crate) fn get_kdf(&self) -> Box<KdfFunction> {
 		match self {
 			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(blake3::blake3_derive),

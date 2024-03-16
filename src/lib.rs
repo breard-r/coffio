@@ -1,3 +1,4 @@
+#[cfg(feature = "encryption")]
 mod canonicalization;
 #[cfg(feature = "encryption")]
 mod encryption;
@@ -9,7 +10,7 @@ mod ikm;
 mod kdf;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod scheme;
-#[cfg(feature = "encryption")]
+#[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod storage;
 
 #[cfg(feature = "encryption")]
