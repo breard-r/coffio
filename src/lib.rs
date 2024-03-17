@@ -1,7 +1,7 @@
 #[cfg(feature = "encryption")]
 mod canonicalization;
 #[cfg(feature = "encryption")]
-mod encryption;
+mod cipher_box;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
@@ -14,7 +14,7 @@ mod scheme;
 mod storage;
 
 #[cfg(feature = "encryption")]
-pub use encryption::{decrypt, encrypt, DataContext};
+pub use cipher_box::{CipherBox, DataContext};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]

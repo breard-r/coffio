@@ -1,5 +1,5 @@
 #[cfg(feature = "encryption")]
-use crate::encryption::{DecryptionFunction, EncryptionFunction, GenNonceFunction};
+use crate::cipher_box::{DecryptionFunction, EncryptionFunction, GenNonceFunction};
 #[cfg(feature = "encryption")]
 use crate::kdf::KdfFunction;
 use crate::Error;
