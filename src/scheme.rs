@@ -1,5 +1,7 @@
 #[cfg(feature = "encryption")]
-use crate::cipher_box::{DecryptionFunction, EncryptionFunction, GenNonceFunction};
+use crate::cipher_box::EncryptedData;
+#[cfg(feature = "encryption")]
+use crate::error::Result;
 #[cfg(feature = "encryption")]
 use crate::kdf::KdfFunction;
 use crate::Error;
@@ -9,6 +11,12 @@ mod blake3;
 #[cfg(feature = "encryption")]
 mod xchacha20poly1305;
 
+#[cfg(feature = "encryption")]
+pub(crate) type DecryptionFunction = dyn Fn(&[u8], &EncryptedData, &str) -> Result<Vec<u8>>;
+#[cfg(feature = "encryption")]
+pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &[u8], &str) -> Result<EncryptedData>;
+#[cfg(feature = "encryption")]
+pub(crate) type GenNonceFunction = dyn Fn() -> Result<Vec<u8>>;
 pub(crate) type SchemeSerializeType = u32;
 
 #[derive(Copy, Clone, Debug, PartialEq)]

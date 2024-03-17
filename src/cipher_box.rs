@@ -5,10 +5,6 @@ use crate::kdf::derive_key;
 use crate::{storage, IkmId, InputKeyMaterialList};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub(crate) type DecryptionFunction = dyn Fn(&[u8], &EncryptedData, &str) -> Result<Vec<u8>>;
-pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &[u8], &str) -> Result<EncryptedData>;
-pub(crate) type GenNonceFunction = dyn Fn() -> Result<Vec<u8>>;
-
 #[derive(Debug)]
 pub(crate) struct EncryptedData {
 	pub(crate) nonce: Vec<u8>,
