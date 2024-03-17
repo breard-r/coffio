@@ -5,12 +5,6 @@ use crate::kdf::derive_key;
 use crate::{storage, IkmId, InputKeyMaterialList};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[derive(Debug)]
-pub(crate) struct EncryptedData {
-	pub(crate) nonce: Vec<u8>,
-	pub(crate) ciphertext: Vec<u8>,
-}
-
 pub struct CipherBox<'a> {
 	ikm_list: &'a InputKeyMaterialList,
 }

@@ -1,5 +1,5 @@
 #[cfg(feature = "encryption")]
-use crate::cipher_box::EncryptedData;
+use crate::encrypted_data::EncryptedData;
 use crate::error::{Error, Result};
 #[cfg(feature = "encryption")]
 use crate::ikm::IkmId;

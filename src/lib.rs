@@ -4,6 +4,8 @@ mod canonicalization;
 mod cipher_box;
 #[cfg(feature = "encryption")]
 mod context;
+#[cfg(feature = "encryption")]
+mod encrypted_data;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
