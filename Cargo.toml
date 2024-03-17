@@ -15,7 +15,6 @@ categories = ["cryptography"]
 default = ["encryption", "ikm-management"]
 encryption = []
 ikm-management = []
-i-understand-and-accept-the-risks = []
 
 [dependencies]
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }

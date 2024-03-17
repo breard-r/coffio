@@ -45,6 +45,3 @@ pub const DEFAULT_IKM_DURATION: u64 = 315_569_252;
 pub const DEFAULT_KEY_CTX_PERIODICITY: u64 = 31_556_925;
 #[cfg(feature = "ikm-management")]
 const DEFAULT_SCHEME: Scheme = Scheme::XChaCha20Poly1305WithBlake3;
-
-#[cfg(not(feature = "i-understand-and-accept-the-risks"))]
-compile_error!("This crate is experimental and therefore comes with absolutely no security guaranty. To use it anyway, enable the \"i-understand-and-accept-the-risks\" feature.");
