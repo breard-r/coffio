@@ -2,6 +2,8 @@
 mod canonicalization;
 #[cfg(feature = "encryption")]
 mod cipher_box;
+#[cfg(feature = "encryption")]
+mod context;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
@@ -14,13 +16,13 @@ mod scheme;
 mod storage;
 
 #[cfg(feature = "encryption")]
-pub use cipher_box::{CipherBox, DataContext};
+pub use cipher_box::CipherBox;
+#[cfg(feature = "encryption")]
+pub use context::{DataContext, KeyContext};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use ikm::{IkmId, InputKeyMaterial, InputKeyMaterialList};
-#[cfg(feature = "encryption")]
-pub use kdf::KeyContext;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use scheme::Scheme;
 

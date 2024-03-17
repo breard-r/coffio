@@ -1,30 +1,13 @@
 use crate::canonicalization::{canonicalize, join_canonicalized_str};
+use crate::context::{DataContext, KeyContext};
 use crate::error::Result;
-use crate::kdf::{derive_key, KeyContext};
+use crate::kdf::derive_key;
 use crate::{storage, IkmId, InputKeyMaterialList};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) type DecryptionFunction = dyn Fn(&[u8], &EncryptedData, &str) -> Result<Vec<u8>>;
 pub(crate) type EncryptionFunction = dyn Fn(&[u8], &[u8], &[u8], &str) -> Result<EncryptedData>;
 pub(crate) type GenNonceFunction = dyn Fn() -> Result<Vec<u8>>;
-
-pub struct DataContext {
-	ctx: Vec<String>,
-}
-
-impl DataContext {
-	pub(crate) fn get_ctx_elems(&self) -> &[String] {
-		self.ctx.as_ref()
-	}
-}
-
-impl<const N: usize> From<[&str; N]> for DataContext {
-	fn from(ctx: [&str; N]) -> Self {
-		Self {
-			ctx: ctx.iter().map(|s| s.to_string()).collect(),
-		}
-	}
-}
 
 #[derive(Debug)]
 pub(crate) struct EncryptedData {
