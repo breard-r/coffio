@@ -22,3 +22,14 @@ blake3 = { version = "1.5.0", default-features = false }
 chacha20poly1305 = { version = "0.10.1", default-features = false, features = ["std"] }
 getrandom = { version = "0.2.12", default-features = false }
 thiserror = { version = "1.0.57", default-features = false }
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "decryption"
+harness = false
+
+[[bench]]
+name = "encryption"
+harness = false
