@@ -1,11 +1,13 @@
 use crate::encrypted_data::EncryptedData;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
 
+// X-variant: the nonce's size is 192 bits (24 bytes)
+const NONCE_SIZE: usize = 24;
+
 pub(crate) fn xchacha20poly1305_gen_nonce() -> Result<Vec<u8>> {
-	// X-variant: the nonce's size is 192 bits (24 bytes)
-	let mut nonce: [u8; 24] = [0; 24];
+	let mut nonce: [u8; NONCE_SIZE] = [0; NONCE_SIZE];
 	getrandom::getrandom(&mut nonce)?;
 	Ok(nonce.to_vec())
 }
@@ -44,6 +46,12 @@ pub(crate) fn xchacha20poly1305_decrypt(
 ) -> Result<Vec<u8>> {
 	// Adapt the key and nonce
 	let key = Key::from_slice(key);
+	if encrypted_data.nonce.len() != NONCE_SIZE {
+		return Err(Error::InvalidNonceSize(
+			NONCE_SIZE,
+			encrypted_data.nonce.len(),
+		));
+	}
 	let nonce = XNonce::from_slice(&encrypted_data.nonce);
 
 	// Prepare the payload
