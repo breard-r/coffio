@@ -42,12 +42,17 @@ pub(crate) fn xchacha20poly1305_decrypt(
 	encrypted_data: &EncryptedData,
 	aad: &str,
 ) -> Result<Vec<u8>> {
+	// Adapt the key and nonce
 	let key = Key::from_slice(key);
 	let nonce = XNonce::from_slice(&encrypted_data.nonce);
+
+	// Prepare the payload
 	let payload = Payload {
 		msg: &encrypted_data.ciphertext,
 		aad: aad.as_bytes(),
 	};
+
+	// Decrypt the payload and return
 	let cipher = XChaCha20Poly1305::new(key);
 	Ok(cipher.decrypt(nonce, payload)?)
 }
