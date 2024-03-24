@@ -10,7 +10,7 @@ fn encrypt_coffio(ikml: &str, input: &str) {
 	let key_ctx = KeyContext::from(KEY_CTX);
 	let data_ctx = DataContext::from(DATA_CTX);
 	let cb = CipherBox::new(&ikm);
-	if let Err(e) = cb.encrypt(&key_ctx, input, &data_ctx) {
+	if let Err(e) = cb.encrypt(&key_ctx, &data_ctx, input) {
 		assert!(false, "{e}");
 	}
 }

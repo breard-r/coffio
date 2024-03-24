@@ -38,8 +38,8 @@ impl<'a> CipherBox<'a> {
 	pub fn encrypt(
 		&self,
 		key_context: &KeyContext,
-		data: impl AsRef<[u8]>,
 		data_context: &DataContext,
+		data: impl AsRef<[u8]>,
 	) -> Result<String> {
 		let tp = if key_context.is_periodic() {
 			let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
@@ -60,8 +60,8 @@ impl<'a> CipherBox<'a> {
 	pub fn decrypt(
 		&self,
 		key_context: &KeyContext,
-		stored_data: &str,
 		data_context: &DataContext,
+		stored_data: &str,
 	) -> Result<Vec<u8>> {
 		let (ikm_id, encrypted_data, tp) = storage::decode_cipher(stored_data)?;
 		let ikm = self.ikm_list.get_ikm_by_id(ikm_id)?;
@@ -109,14 +109,14 @@ mod tests {
 		let cb = CipherBox::new(&lst);
 
 		// Encrypt
-		let res = cb.encrypt(&key_ctx, TEST_DATA, &data_ctx);
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
 		assert!(ciphertext.starts_with("AQAAAA:"));
 		assert_eq!(ciphertext.len(), 98);
 
 		// Decrypt
-		let res = cb.decrypt(&key_ctx, &ciphertext, &data_ctx);
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
 		assert!(res.is_ok(), "res: {res:?}");
 		let plaintext = res.unwrap();
 		assert_eq!(plaintext, TEST_DATA);
@@ -130,14 +130,14 @@ mod tests {
 		let cb = CipherBox::new(&lst);
 
 		// Encrypt
-		let res = cb.encrypt(&key_ctx, TEST_DATA, &data_ctx);
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
 		assert!(ciphertext.starts_with("AQAAAA:"));
 		assert_eq!(ciphertext.len(), 98);
 
 		// Decrypt
-		let res = cb.decrypt(&key_ctx, &ciphertext, &data_ctx);
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
 		assert!(res.is_ok(), "res: {res:?}");
 		let plaintext = res.unwrap();
 		assert_eq!(plaintext, TEST_DATA);
@@ -151,14 +151,14 @@ mod tests {
 		let cb = CipherBox::new(&lst);
 
 		// Encrypt
-		let res = cb.encrypt(&key_ctx, TEST_DATA, &data_ctx);
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
 		assert!(ciphertext.starts_with("AQAAAA:"));
 		assert_eq!(ciphertext.len(), 110);
 
 		// Decrypt
-		let res = cb.decrypt(&key_ctx, &ciphertext, &data_ctx);
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
 		assert!(res.is_ok(), "res: {res:?}");
 		let plaintext = res.unwrap();
 		assert_eq!(plaintext, TEST_DATA);
@@ -182,12 +182,12 @@ mod tests {
 		let cb = CipherBox::new(&lst);
 
 		// Test if the reference ciphertext used for the tests is actually valid
-		let res = cb.decrypt(&key_ctx, TEST_CIPHERTEXT, &data_ctx);
+		let res = cb.decrypt(&key_ctx, &data_ctx, TEST_CIPHERTEXT);
 		assert!(res.is_ok(), "invalid reference ciphertext");
 
 		// Test if altered versions of the reference ciphertext are refused
 		for (ciphertext, error_str) in tests {
-			let res = cb.decrypt(&key_ctx, ciphertext, &data_ctx);
+			let res = cb.decrypt(&key_ctx, &data_ctx, ciphertext);
 			assert!(res.is_err(), "failed error detection: {error_str}");
 		}
 	}
@@ -199,15 +199,15 @@ mod tests {
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
 		let cb = CipherBox::new(&lst);
 
-		let res = cb.decrypt(&key_ctx, TEST_CIPHERTEXT, &data_ctx);
+		let res = cb.decrypt(&key_ctx, &data_ctx, TEST_CIPHERTEXT);
 		assert!(res.is_ok(), "invalid reference ciphertext");
 
 		let invalid_key_ctx = KeyContext::from(["invalid", "key", "context"]);
-		let res = cb.decrypt(&invalid_key_ctx, TEST_CIPHERTEXT, &data_ctx);
+		let res = cb.decrypt(&invalid_key_ctx, &data_ctx, TEST_CIPHERTEXT);
 		assert!(res.is_err(), "failed error detection: invalid key context");
 
 		let invalid_data_ctx = DataContext::from(["invalid", "data", "context"]);
-		let res = cb.decrypt(&key_ctx, TEST_CIPHERTEXT, &invalid_data_ctx);
+		let res = cb.decrypt(&key_ctx, &invalid_data_ctx, TEST_CIPHERTEXT);
 		assert!(res.is_err(), "failed error detection: invalid key context");
 	}
 }
