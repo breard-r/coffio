@@ -4,15 +4,6 @@ use crate::ikm::InputKeyMaterial;
 
 pub(crate) type KdfFunction = dyn Fn(&str, &[u8]) -> Vec<u8>;
 
-impl<const N: usize> From<[&str; N]> for KeyContext {
-	fn from(ctx: [&str; N]) -> Self {
-		Self {
-			ctx: ctx.iter().map(|s| s.to_string()).collect(),
-			periodicity: Some(crate::DEFAULT_KEY_CTX_PERIODICITY),
-		}
-	}
-}
-
 pub(crate) fn derive_key(
 	ikm: &InputKeyMaterial,
 	ctx: &KeyContext,

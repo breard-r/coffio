@@ -1,5 +1,13 @@
 use std::num::NonZeroU64;
 
+macro_rules! data_ctx_from_iter {
+	($self: ident, $ctx: ident) => {
+		$self {
+			ctx: $ctx.iter().map(|s| s.to_string()).collect(),
+		}
+	};
+}
+
 pub struct DataContext {
 	ctx: Vec<String>,
 }
@@ -12,10 +20,29 @@ impl DataContext {
 
 impl<const N: usize> From<[&str; N]> for DataContext {
 	fn from(ctx: [&str; N]) -> Self {
-		Self {
-			ctx: ctx.iter().map(|s| s.to_string()).collect(),
-		}
+		data_ctx_from_iter!(Self, ctx)
 	}
+}
+
+impl<const N: usize> From<&[&str; N]> for DataContext {
+	fn from(ctx: &[&str; N]) -> Self {
+		data_ctx_from_iter!(Self, ctx)
+	}
+}
+
+impl From<&[&str]> for DataContext {
+	fn from(ctx: &[&str]) -> Self {
+		data_ctx_from_iter!(Self, ctx)
+	}
+}
+
+macro_rules! key_ctx_from_iter {
+	($self: ident, $ctx: ident) => {
+		$self {
+			ctx: $ctx.iter().map(|s| s.to_string()).collect(),
+			periodicity: Some(crate::DEFAULT_KEY_CTX_PERIODICITY),
+		}
+	};
 }
 
 pub struct KeyContext {
@@ -46,5 +73,23 @@ impl KeyContext {
 
 	pub(crate) fn is_periodic(&self) -> bool {
 		self.periodicity.is_some()
+	}
+}
+
+impl<const N: usize> From<[&str; N]> for KeyContext {
+	fn from(ctx: [&str; N]) -> Self {
+		key_ctx_from_iter!(Self, ctx)
+	}
+}
+
+impl<const N: usize> From<&[&str; N]> for KeyContext {
+	fn from(ctx: &[&str; N]) -> Self {
+		key_ctx_from_iter!(Self, ctx)
+	}
+}
+
+impl From<&[&str]> for KeyContext {
+	fn from(ctx: &[&str]) -> Self {
+		key_ctx_from_iter!(Self, ctx)
 	}
 }

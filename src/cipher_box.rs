@@ -79,8 +79,8 @@ mod tests {
 
 	const TEST_CIPHERTEXT: &str = "AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA";
 	const TEST_DATA: &[u8] = b"Lorem ipsum dolor sit amet.";
-	const TEST_KEY_CTX: [&str; 3] = ["db_name", "table_name", "column_name"];
-	const TEST_DATA_CTX: [&str; 1] = ["018db876-3d9d-79af-9460-55d17da991d8"];
+	const TEST_KEY_CTX: &[&str] = &["db_name", "table_name", "column_name"];
+	const TEST_DATA_CTX: &[&str] = &["018db876-3d9d-79af-9460-55d17da991d8"];
 
 	fn get_static_key_ctx() -> KeyContext {
 		let mut ctx: KeyContext = TEST_KEY_CTX.into();

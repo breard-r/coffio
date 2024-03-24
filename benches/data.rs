@@ -1,6 +1,6 @@
 pub const MEASUREMENT_TIME: u64 = 30;
-pub const KEY_CTX: [&str; 3] = ["database_name", "table_name", "column_name"];
-pub const DATA_CTX: [&str; 2] = [
+pub const KEY_CTX: &[&str] = &["database_name", "table_name", "column_name"];
+pub const DATA_CTX: &[&str] = &[
 	"b3b21eb1-70d7-4dc6-9a2a-439e17d8491d",
 	"8dfa06bc-de19-455a-8e43-2f5d8019442f",
 ];

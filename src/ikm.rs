@@ -154,6 +154,14 @@ impl InputKeyMaterialList {
 	}
 }
 
+impl std::str::FromStr for InputKeyMaterialList {
+	type Err = Error;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Self::import(s)
+	}
+}
+
 #[cfg(feature = "ikm-management")]
 impl std::ops::Deref for InputKeyMaterialList {
 	type Target = Vec<InputKeyMaterial>;
@@ -166,12 +174,35 @@ impl std::ops::Deref for InputKeyMaterialList {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use std::str::FromStr;
 
 	#[test]
 	fn import() {
 		let s =
 			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::import(s);
+		assert!(res.is_ok(), "res: {res:?}");
+		let lst = res.unwrap();
+		assert_eq!(lst.id_counter, 1);
+		assert_eq!(lst.ikm_lst.len(), 1);
+		let ikm = lst.ikm_lst.first().unwrap();
+		assert_eq!(ikm.id, 1);
+		assert_eq!(ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
+		assert_eq!(
+			ikm.content,
+			[
+				191, 189, 129, 48, 214, 232, 213, 27, 152, 190, 10, 218, 15, 97, 44, 226, 147, 254,
+				177, 104, 10, 185, 246, 135, 99, 62, 110, 98, 143, 77, 126, 123
+			]
+		);
+		assert_eq!(ikm.is_revoked, false);
+	}
+
+	#[test]
+	fn from_str() {
+		let s =
+			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+		let res = InputKeyMaterialList::from_str(s);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
 		assert_eq!(lst.id_counter, 1);
