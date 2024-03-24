@@ -427,7 +427,7 @@ mod encryption {
 	use super::*;
 
 	#[test]
-	fn get_latest_ikm() {
+	fn get_latest_ikm_xchacha20poly1305_blake3() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
@@ -440,6 +440,23 @@ mod encryption {
 		let latest_ikm = res.unwrap();
 		assert_eq!(latest_ikm.id, 3);
 		assert_eq!(latest_ikm.scheme, Scheme::XChaCha20Poly1305WithBlake3);
+		assert_eq!(latest_ikm.content.len(), 32);
+	}
+
+	#[test]
+	fn get_latest_ikm_aes128gcm_sha256() {
+		let mut lst = InputKeyMaterialList::new();
+		let _ = lst.add_ikm();
+		let _ = lst.add_ikm();
+		let _ = lst.add_custom_ikm(
+			Scheme::Aes128GcmWithSha256,
+			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
+		);
+		let res = lst.get_latest_ikm();
+		assert!(res.is_ok(), "res: {res:?}");
+		let latest_ikm = res.unwrap();
+		assert_eq!(latest_ikm.id, 3);
+		assert_eq!(latest_ikm.scheme, Scheme::Aes128GcmWithSha256);
 		assert_eq!(latest_ikm.content.len(), 32);
 	}
 

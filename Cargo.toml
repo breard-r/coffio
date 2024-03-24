@@ -17,10 +17,13 @@ encryption = []
 ikm-management = []
 
 [dependencies]
+aes-gcm = { version = "0.10.3", default-features = false, features = ["std", "aes"] }
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }
 blake3 = { version = "1.5.0", default-features = false }
 chacha20poly1305 = { version = "0.10.1", default-features = false, features = ["std"] }
 getrandom = { version = "0.2.12", default-features = false }
+hkdf = { version = "0.12.4", default-features = false, features = ["std"] }
+sha2 = { version = "0.10.8", default-features = false, features = ["std"] }
 thiserror = { version = "1.0.57", default-features = false }
 
 [dev-dependencies]

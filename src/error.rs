@@ -8,6 +8,8 @@ pub enum Error {
 	IkmNoneAvailable,
 	#[error("ikm error: {0}: input key material not found")]
 	IkmNotFound(crate::ikm::IkmId),
+	#[error("encoded data: invalid nonce size: got {1} instead of {0}")]
+	InvalidNonceSize(usize, usize),
 	#[error("parsing error: invalid base64-urlsafe-nopadding data: {0}")]
 	ParsingBase64Error(base64ct::Error),
 	#[error("parsing error: encoded data: empty nonce")]

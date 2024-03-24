@@ -94,16 +94,23 @@ mod tests {
 		ctx
 	}
 
-	fn get_ikm_lst() -> InputKeyMaterialList {
+	fn get_ikm_lst_chacha20poly1305_blake3() -> InputKeyMaterialList {
 		InputKeyMaterialList::import(
 			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA",
 		)
 		.unwrap()
 	}
 
+	fn get_ikm_lst_aes128gcm_sha256() -> InputKeyMaterialList {
+		InputKeyMaterialList::import(
+			"AQAAAA:AQAAAAIAAAA2lXqTSduZ22J0LiwEhmENjB6pLo0GVKvAQYocJcAAp1f8_2UAAAAAuzDPeAAAAAAA",
+		)
+		.unwrap()
+	}
+
 	#[test]
-	fn encrypt_decrypt_no_context() {
-		let lst = get_ikm_lst();
+	fn encrypt_decrypt_no_context_chacha20poly1305_blake3() {
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = get_static_empty_key_ctx();
 		let data_ctx = DataContext::from([]);
 		let cb = CipherBox::new(&lst);
@@ -123,8 +130,29 @@ mod tests {
 	}
 
 	#[test]
-	fn encrypt_decrypt_with_static_context() {
-		let lst = get_ikm_lst();
+	fn encrypt_decrypt_no_context_aes128gcm_sha256() {
+		let lst = get_ikm_lst_aes128gcm_sha256();
+		let key_ctx = get_static_empty_key_ctx();
+		let data_ctx = DataContext::from([]);
+		let cb = CipherBox::new(&lst);
+
+		// Encrypt
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
+		assert!(res.is_ok(), "res: {res:?}");
+		let ciphertext = res.unwrap();
+		assert!(ciphertext.starts_with("AQAAAA:"));
+		assert_eq!(ciphertext.len(), 82);
+
+		// Decrypt
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert!(res.is_ok(), "res: {res:?}");
+		let plaintext = res.unwrap();
+		assert_eq!(plaintext, TEST_DATA);
+	}
+
+	#[test]
+	fn encrypt_decrypt_with_static_context_chacha20poly1305_blake3() {
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = get_static_key_ctx();
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
 		let cb = CipherBox::new(&lst);
@@ -144,8 +172,29 @@ mod tests {
 	}
 
 	#[test]
-	fn encrypt_decrypt_with_context() {
-		let lst = get_ikm_lst();
+	fn encrypt_decrypt_with_static_context_aes128gcm_sha256() {
+		let lst = get_ikm_lst_aes128gcm_sha256();
+		let key_ctx = get_static_key_ctx();
+		let data_ctx = DataContext::from(TEST_DATA_CTX);
+		let cb = CipherBox::new(&lst);
+
+		// Encrypt
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
+		assert!(res.is_ok(), "res: {res:?}");
+		let ciphertext = res.unwrap();
+		assert!(ciphertext.starts_with("AQAAAA:"));
+		assert_eq!(ciphertext.len(), 82);
+
+		// Decrypt
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert!(res.is_ok(), "res: {res:?}");
+		let plaintext = res.unwrap();
+		assert_eq!(plaintext, TEST_DATA);
+	}
+
+	#[test]
+	fn encrypt_decrypt_with_context_chacha20poly1305_blake3() {
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
 		let cb = CipherBox::new(&lst);
@@ -156,6 +205,27 @@ mod tests {
 		let ciphertext = res.unwrap();
 		assert!(ciphertext.starts_with("AQAAAA:"));
 		assert_eq!(ciphertext.len(), 110);
+
+		// Decrypt
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert!(res.is_ok(), "res: {res:?}");
+		let plaintext = res.unwrap();
+		assert_eq!(plaintext, TEST_DATA);
+	}
+
+	#[test]
+	fn encrypt_decrypt_with_context_aes128gcm_sha256() {
+		let lst = get_ikm_lst_aes128gcm_sha256();
+		let key_ctx = KeyContext::from(TEST_KEY_CTX);
+		let data_ctx = DataContext::from(TEST_DATA_CTX);
+		let cb = CipherBox::new(&lst);
+
+		// Encrypt
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
+		assert!(res.is_ok(), "res: {res:?}");
+		let ciphertext = res.unwrap();
+		assert!(ciphertext.starts_with("AQAAAA:"));
+		assert_eq!(ciphertext.len(), 94);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -176,7 +246,7 @@ mod tests {
 			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg", "missing time period"),
 		];
 
-		let lst = get_ikm_lst();
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
 		let cb = CipherBox::new(&lst);
@@ -194,7 +264,7 @@ mod tests {
 
 	#[test]
 	fn invalid_context() {
-		let lst = get_ikm_lst();
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
 		let cb = CipherBox::new(&lst);
