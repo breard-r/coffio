@@ -7,16 +7,30 @@ pub const DATA_CTX: &[&str] = &[
 // created_at: Sunday 21 February 2021 10:21:42
 // expire_at: Thursday 10 February 2180 10:21:42
 // is_revoked: false
+pub const IKML_AES128GCM_SHA256: &str =
+	"AQAAAA:AQAAAAIAAAAAsPHG8Eyb8uZBAUUyUuxIRdQ5mIO1v1QDBhWOzbCRvzY0MmAAAAAANsk0iwEAAAAA";
+// created_at: Sunday 21 February 2021 10:21:42
+// expire_at: Thursday 10 February 2180 10:21:42
+// is_revoked: false
 pub const IKML_XCHACHA20POLY1305_BLAKE3: &str =
 	"AQAAAA:AwAAAAEAAAAMoNIW9gIGkzegUDEsU3N1Rf_Zz0OMuylUSiQjUzLXqzY0MmAAAAAANsk0iwEAAAAA";
-pub const IKMLS: &[(&str, &str)] =
-	&[("XChaCha20Poly1305WithBlake3", IKML_XCHACHA20POLY1305_BLAKE3)];
+pub const IKMLS: &[(&str, &str)] = &[
+	("Aes128GcmWithSha256", IKML_AES128GCM_SHA256),
+	("XChaCha20Poly1305WithBlake3", IKML_XCHACHA20POLY1305_BLAKE3),
+];
 pub const PLAIN_INPUTS: &[(&str, &str)] = &[
 	("01 - 12 B", include_str!("data/plain_01_xs.txt")),
 	("02 - 60 B", include_str!("data/plain_02_s.txt")),
 	("03 - 500 B", include_str!("data/plain_03_m.txt")),
 	("04 - 3 KB", include_str!("data/plain_04_l.txt")),
 	("05 - 1 MB", include_str!("data/plain_05_xl.txt")),
+];
+pub const AES128GCM_SHA256_INPUTS: &[(&str, &str)] = &[
+	("01 - 12 B", include_str!("data/aes128gcm-sha256_01_xs.txt")),
+	("02 - 60 B", include_str!("data/aes128gcm-sha256_02_s.txt")),
+	("03 - 500 B", include_str!("data/aes128gcm-sha256_03_m.txt")),
+	("04 - 3 KB", include_str!("data/aes128gcm-sha256_04_l.txt")),
+	("05 - 1 MB", include_str!("data/aes128gcm-sha256_05_xl.txt")),
 ];
 pub const XCHACHA20POLY1305_BLAKE3_INPUTS: &[(&str, &str)] = &[
 	(
