@@ -1,3 +1,5 @@
+#![feature(doc_auto_cfg)]
+
 #[cfg(feature = "encryption")]
 mod canonicalization;
 #[cfg(feature = "encryption")]

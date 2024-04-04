@@ -5,8 +5,17 @@ use std::time::{Duration, SystemTime};
 pub(crate) const IKM_BASE_STRUCT_SIZE: usize = 25;
 
 pub(crate) type CounterId = u32;
+/// Abstract type representing the identifier of an [InputKeyMaterial].
 pub type IkmId = u32;
 
+/// An input key material (IKM) is a secret random seed that is used to derive cryptographic keys.
+///
+/// In order to manage your IKMs, each one of them has an unique identifier. An IKM is also tight
+/// to a specific context in which it may be used. Keep in mind that an IKM is linked to a specific
+/// algorithm, as an expiration date and can be revoked.
+///
+/// This struct is exposed so you can display its informations when managing your IKMs using an
+/// [InputKeyMaterialList]. It it not meant to be used otherwise.
 #[derive(Debug)]
 pub struct InputKeyMaterial {
 	pub id: IkmId,
@@ -71,6 +80,68 @@ impl InputKeyMaterial {
 	}
 }
 
+/// A list of [InputKeyMaterial] (IKM). This is where you should manage your secrets.
+///
+/// The way coffio works is quite simple: you generate a secret random seed (an input key material,
+/// IKM) that is used to derive cryptographic keys, which are used to encrypt your data. However,
+/// if your IKM or any derived key has leaked, or if you wishes to change the encryption algorithm,
+/// you need to generate an other IKM. This is why coffio uses a single opaque token capable of
+/// containing several IKMs, the [InputKeyMaterialList]. This way, the transition between two IKMs
+/// is smooth: you can use the new IKM to encrypt all new secrets and keep the revoked one to
+/// decrypt secrets it has already encrypted and you haven't re-encrypted using the new IKM yet.
+///
+/// This list is ordered. To encrypt new data, coffio will always use the last IKM that is not
+/// revoked and is within its validity period.
+///
+/// Encrypted data contains the [IkmId] of the IKM used to derive the key. To decrypt data, coffio
+/// will therefore search for this specific IKM in the [InputKeyMaterialList].
+///
+/// <div class="warning">
+/// Never remove an IKM from the list unless you are absolutely sure that all data encrypted using
+/// this IKM have been either deleted or re-encrypted using another IKM.
+/// </div>
+///
+/// # Examples
+///
+/// ```
+/// use coffio::{InputKeyMaterialList, Scheme};
+/// use std::time::Duration;
+///
+/// // Create an empty IKM list.
+/// let mut ikml = InputKeyMaterialList::new();
+/// assert_eq!(ikml.len(), 0);
+///
+/// // Add an IKM to the list with the default settings.
+/// let _ = ikml.add_ikm();
+/// assert_eq!(ikml.len(), 1);
+///
+/// // Add an IKM to the list with custom settings.
+/// let _ = ikml.add_custom_ikm(
+///     Scheme::Aes128GcmWithSha256,
+///     Duration::from_secs(315_569_252),
+/// );
+/// assert_eq!(ikml.len(), 2);
+///
+/// // Retreive the id of the first IKM.
+/// let ikm_id = ikml[0].id.clone();
+///
+/// // Revoke the first IKM.
+/// ikml.revoke_ikm(ikm_id);
+/// assert_eq!(ikml.len(), 2);
+///
+/// // Delete the first IKM.
+/// ikml.delete_ikm(ikm_id);
+/// assert_eq!(ikml.len(), 1);
+///
+/// // Export the IKM list
+/// let exported_ikml = ikml.export()?;
+/// println!("My secret IKM list: {exported_ikml}");
+///
+/// // Import an IKM list
+/// let ikml2 = InputKeyMaterialList::import(&exported_ikml)?;
+/// assert_eq!(ikml2.len(), 1);
+/// # Ok::<(), coffio::Error>(())
+/// ```
 #[derive(Debug, Default)]
 pub struct InputKeyMaterialList {
 	pub(crate) ikm_lst: Vec<InputKeyMaterial>,
