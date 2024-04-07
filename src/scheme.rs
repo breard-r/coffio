@@ -36,10 +36,10 @@ pub(crate) type SchemeSerializeType = u32;
 /// In the following scheme description, the following terms are used:
 /// - `Max data size` describes the maximal size of data that can safely be encrypted using a
 /// single key and nonce, which means you should never pass a `data` parameter to
-/// [encrypt][crate::CipherBox::encrypt] that has a higher size. Coffio will not enforce this
+/// [encrypt][crate::Coffio::encrypt] that has a higher size. Coffio will not enforce this
 /// limit, it is your responsibility to do so.
 /// - `Max invocations` describes the maximal number of times you can safely call
-/// [encrypt][crate::CipherBox::encrypt] with a single key, which means you should either rotate
+/// [encrypt][crate::Coffio::encrypt] with a single key, which means you should either rotate
 /// your IKM or use an appropriate key periodicity before reaching this number. Coffio will neither
 /// enforce this limit nor count the number of invocations, it is your responsibility to do so.
 #[derive(Copy, Clone, Debug, PartialEq)]

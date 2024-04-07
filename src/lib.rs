@@ -1,7 +1,7 @@
 #[cfg(feature = "encryption")]
 mod canonicalization;
 #[cfg(feature = "encryption")]
-mod cipher_box;
+mod coffio;
 #[cfg(feature = "encryption")]
 mod context;
 #[cfg(feature = "encryption")]
@@ -18,7 +18,7 @@ mod scheme;
 mod storage;
 
 #[cfg(feature = "encryption")]
-pub use cipher_box::CipherBox;
+pub use coffio::Coffio;
 #[cfg(feature = "encryption")]
 pub use context::{DataContext, KeyContext};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]

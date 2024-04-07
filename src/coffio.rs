@@ -5,11 +5,11 @@ use crate::kdf::derive_key;
 use crate::{storage, IkmId, InputKeyMaterialList};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub struct CipherBox<'a> {
+pub struct Coffio<'a> {
 	ikm_list: &'a InputKeyMaterialList,
 }
 
-impl<'a> CipherBox<'a> {
+impl<'a> Coffio<'a> {
 	pub fn new(ikm_list: &'a InputKeyMaterialList) -> Self {
 		Self { ikm_list }
 	}
@@ -113,7 +113,7 @@ mod tests {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = get_static_empty_key_ctx();
 		let data_ctx = DataContext::from([]);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Encrypt
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
@@ -134,7 +134,7 @@ mod tests {
 		let lst = get_ikm_lst_aes128gcm_sha256();
 		let key_ctx = get_static_empty_key_ctx();
 		let data_ctx = DataContext::from([]);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Encrypt
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
@@ -155,7 +155,7 @@ mod tests {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = get_static_key_ctx();
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Encrypt
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
@@ -176,7 +176,7 @@ mod tests {
 		let lst = get_ikm_lst_aes128gcm_sha256();
 		let key_ctx = get_static_key_ctx();
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Encrypt
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
@@ -197,7 +197,7 @@ mod tests {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Encrypt
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
@@ -218,7 +218,7 @@ mod tests {
 		let lst = get_ikm_lst_aes128gcm_sha256();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Encrypt
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
@@ -249,7 +249,7 @@ mod tests {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		// Test if the reference ciphertext used for the tests is actually valid
 		let res = cb.decrypt(&key_ctx, &data_ctx, TEST_CIPHERTEXT);
@@ -267,7 +267,7 @@ mod tests {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
 		let data_ctx = DataContext::from(TEST_DATA_CTX);
-		let cb = CipherBox::new(&lst);
+		let cb = Coffio::new(&lst);
 
 		let res = cb.decrypt(&key_ctx, &data_ctx, TEST_CIPHERTEXT);
 		assert!(res.is_ok(), "invalid reference ciphertext");
