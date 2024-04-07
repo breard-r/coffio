@@ -142,28 +142,25 @@ impl InputKeyMaterial {
 /// assert_eq!(ikml.len(), 0);
 ///
 /// // Add an IKM to the list with the default settings.
-/// let _ = ikml.add_ikm();
+/// let ikm_id_1 = ikml.add_ikm()?;
 /// assert_eq!(ikml.len(), 1);
 ///
 /// // Add an IKM to the list with custom settings.
 /// let not_before = SystemTime::now();
 /// let not_after = not_before + Duration::from_secs(315_569_252);
-/// let _ = ikml.add_custom_ikm(
+/// let ikm_id_2 = ikml.add_custom_ikm(
 ///     Scheme::Aes128GcmWithSha256,
 ///     not_before,
 ///     not_after,
-/// );
+/// )?;
 /// assert_eq!(ikml.len(), 2);
-///
-/// // Retreive the id of the first IKM.
-/// let ikm_id = ikml[0].get_id();
 ///
 /// // Revoke the first IKM.
-/// ikml.revoke_ikm(ikm_id);
+/// ikml.revoke_ikm(ikm_id_1);
 /// assert_eq!(ikml.len(), 2);
 ///
-/// // Delete the first IKM.
-/// ikml.delete_ikm(ikm_id);
+/// // Delete the second IKM.
+/// ikml.delete_ikm(ikm_id_2);
 /// assert_eq!(ikml.len(), 1);
 ///
 /// // Export the IKM list
@@ -208,7 +205,7 @@ impl InputKeyMaterialList {
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
-	pub fn add_ikm(&mut self) -> Result<()> {
+	pub fn add_ikm(&mut self) -> Result<IkmId> {
 		let not_before = SystemTime::now();
 		let not_after = not_before + Duration::from_secs(crate::DEFAULT_IKM_DURATION);
 		self.add_custom_ikm(crate::DEFAULT_SCHEME, not_before, not_after)
@@ -238,7 +235,7 @@ impl InputKeyMaterialList {
 		scheme: Scheme,
 		not_before: SystemTime,
 		not_after: SystemTime,
-	) -> Result<()> {
+	) -> Result<IkmId> {
 		let ikm_len = scheme.get_ikm_size();
 		let mut content: Vec<u8> = vec![0; ikm_len];
 		getrandom::getrandom(content.as_mut_slice())?;
@@ -251,7 +248,7 @@ impl InputKeyMaterialList {
 			is_revoked: false,
 			content,
 		});
-		Ok(())
+		Ok(self.id_counter)
 	}
 
 	/// Delete the specified IKM from the list.
@@ -260,19 +257,18 @@ impl InputKeyMaterialList {
 	///
 	/// ```
 	/// let mut ikml = coffio::InputKeyMaterialList::new();
-	/// let _ = ikml.add_ikm()?;
-	/// let ikm_id = ikml[0].get_id();
-	/// ikml.delete_ikm(ikm_id);
+	/// let ikm_id = ikml.add_ikm()?;
+	/// ikml.delete_ikm(ikm_id)?;
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
-	pub fn delete_ikm(&mut self, id: IkmId) -> Result<()> {
+	pub fn delete_ikm(&mut self, id: IkmId) -> Result<IkmId> {
 		let initial_len = self.ikm_lst.len();
 		self.ikm_lst.retain(|ikm| ikm.id != id);
 		if self.ikm_lst.len() == initial_len {
 			Err(Error::IkmNotFound(id))
 		} else {
-			Ok(())
+			Ok(id)
 		}
 	}
 
@@ -282,20 +278,19 @@ impl InputKeyMaterialList {
 	///
 	/// ```
 	/// let mut ikml = coffio::InputKeyMaterialList::new();
-	/// let _ = ikml.add_ikm()?;
-	/// let ikm_id = ikml[0].get_id();
-	/// ikml.revoke_ikm(ikm_id);
+	/// let ikm_id = ikml.add_ikm()?;
+	/// ikml.revoke_ikm(ikm_id)?;
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
-	pub fn revoke_ikm(&mut self, id: IkmId) -> Result<()> {
+	pub fn revoke_ikm(&mut self, id: IkmId) -> Result<IkmId> {
 		let ikm = self
 			.ikm_lst
 			.iter_mut()
 			.find(|ikm| ikm.id == id)
 			.ok_or(Error::IkmNotFound(id))?;
 		ikm.is_revoked = true;
-		Ok(())
+		Ok(id)
 	}
 
 	/// Export the IKM list to a displayable string.
@@ -571,11 +566,13 @@ mod ikm_management {
 
 		let res = lst.delete_ikm(2);
 		assert!(res.is_ok(), "res: {res:?}");
+		assert_eq!(res.unwrap(), 2);
 		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 1);
 
 		let res = lst.delete_ikm(1);
 		assert!(res.is_ok(), "res: {res:?}");
+		assert_eq!(res.unwrap(), 1);
 		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_err());
 
@@ -592,13 +589,20 @@ mod ikm_management {
 		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 2);
 
-		let _ = lst.revoke_ikm(2);
+		let res = lst.revoke_ikm(2);
+		assert!(res.is_ok(), "res: {res:?}");
+		assert_eq!(res.unwrap(), 2);
 		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 1);
 
-		let _ = lst.revoke_ikm(1);
+		let res = lst.revoke_ikm(1);
+		assert!(res.is_ok(), "res: {res:?}");
+		assert_eq!(res.unwrap(), 1);
 		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_err());
+
+		let res = lst.revoke_ikm(42);
+		assert!(res.is_err(), "res: {res:?}");
 	}
 
 	#[test]
