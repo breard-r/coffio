@@ -18,15 +18,40 @@ pub type IkmId = u32;
 /// [InputKeyMaterialList]. It it not meant to be used otherwise.
 #[derive(Debug)]
 pub struct InputKeyMaterial {
-	pub id: IkmId,
-	pub scheme: Scheme,
+	pub(crate) id: IkmId,
+	pub(crate) scheme: Scheme,
 	pub(crate) content: Vec<u8>,
-	pub not_before: SystemTime,
-	pub not_after: SystemTime,
-	pub is_revoked: bool,
+	pub(crate) not_before: SystemTime,
+	pub(crate) not_after: SystemTime,
+	pub(crate) is_revoked: bool,
 }
 
 impl InputKeyMaterial {
+	#[cfg(feature = "ikm-management")]
+	pub fn get_id(&self) -> IkmId {
+		self.id
+	}
+
+	#[cfg(feature = "ikm-management")]
+	pub fn get_scheme(&self) -> Scheme {
+		self.scheme
+	}
+
+	#[cfg(feature = "ikm-management")]
+	pub fn get_not_before(&self) -> SystemTime {
+		self.not_before
+	}
+
+	#[cfg(feature = "ikm-management")]
+	pub fn get_not_after(&self) -> SystemTime {
+		self.not_after
+	}
+
+	#[cfg(feature = "ikm-management")]
+	pub fn is_revoked(&self) -> bool {
+		self.is_revoked
+	}
+
 	#[cfg(feature = "ikm-management")]
 	pub(crate) fn as_bytes(&self) -> Result<Vec<u8>> {
 		let mut res = Vec::with_capacity(IKM_BASE_STRUCT_SIZE + self.scheme.get_ikm_size());
@@ -123,7 +148,7 @@ impl InputKeyMaterial {
 /// assert_eq!(ikml.len(), 2);
 ///
 /// // Retreive the id of the first IKM.
-/// let ikm_id = ikml[0].id.clone();
+/// let ikm_id = ikml[0].get_id();
 ///
 /// // Revoke the first IKM.
 /// ikml.revoke_ikm(ikm_id);
