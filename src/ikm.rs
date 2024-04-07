@@ -186,6 +186,7 @@ impl InputKeyMaterialList {
 	///
 	/// ```
 	/// let ikml = coffio::InputKeyMaterialList::new();
+	/// assert_eq!(ikml.len(), 0);
 	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn new() -> Self {
@@ -201,7 +202,9 @@ impl InputKeyMaterialList {
 	///
 	/// ```
 	/// let mut ikml = coffio::InputKeyMaterialList::new();
+	/// assert_eq!(ikml.len(), 0);
 	/// let _ = ikml.add_ikm()?;
+	/// assert_eq!(ikml.len(), 1);
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
@@ -220,6 +223,7 @@ impl InputKeyMaterialList {
 	/// use std::time::{Duration, SystemTime};
 	///
 	/// let mut ikml = InputKeyMaterialList::new();
+	/// assert_eq!(ikml.len(), 0);
 	/// let not_before = SystemTime::now();
 	/// let not_after = not_before + Duration::from_secs(315_569_252);
 	/// let _ = ikml.add_custom_ikm(
@@ -227,6 +231,7 @@ impl InputKeyMaterialList {
 	///     not_before,
 	///     not_after,
 	/// )?;
+	/// assert_eq!(ikml.len(), 1);
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
@@ -258,7 +263,9 @@ impl InputKeyMaterialList {
 	/// ```
 	/// let mut ikml = coffio::InputKeyMaterialList::new();
 	/// let ikm_id = ikml.add_ikm()?;
+	/// assert_eq!(ikml.len(), 1);
 	/// ikml.delete_ikm(ikm_id)?;
+	/// assert_eq!(ikml.len(), 0);
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
@@ -279,7 +286,9 @@ impl InputKeyMaterialList {
 	/// ```
 	/// let mut ikml = coffio::InputKeyMaterialList::new();
 	/// let ikm_id = ikml.add_ikm()?;
+	/// assert_eq!(ikml.len(), 1);
 	/// ikml.revoke_ikm(ikm_id)?;
+	/// assert_eq!(ikml.len(), 1);
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
@@ -315,6 +324,7 @@ impl InputKeyMaterialList {
 	/// ```
 	/// let stored_ikml = "AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 	/// let mut ikml = coffio::InputKeyMaterialList::import(stored_ikml)?;
+	/// assert_eq!(ikml.len(), 1);
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	pub fn import(s: &str) -> Result<Self> {
@@ -461,6 +471,7 @@ mod ikm_management {
 		assert_eq!(lst.ikm_lst.len(), 1);
 		assert!(lst.ikm_lst.first().is_some());
 		let el = lst.ikm_lst.first().unwrap();
+		assert_eq!(el.id, res.unwrap());
 		assert_eq!(el.id, 1);
 		assert_eq!(el.is_revoked, false);
 
