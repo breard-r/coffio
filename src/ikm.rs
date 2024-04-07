@@ -238,12 +238,15 @@ impl InputKeyMaterialList {
 	}
 
 	#[cfg(any(test, feature = "encryption"))]
-	pub(crate) fn get_latest_ikm(&self) -> Result<&InputKeyMaterial> {
-		let now = SystemTime::now();
+	pub(crate) fn get_latest_ikm(&self, encryption_time: SystemTime) -> Result<&InputKeyMaterial> {
 		self.ikm_lst
 			.iter()
 			.rev()
-			.find(|&ikm| !ikm.is_revoked && ikm.not_before < now && ikm.not_after > now)
+			.find(|&ikm| {
+				!ikm.is_revoked
+					&& ikm.not_before < encryption_time
+					&& ikm.not_after > encryption_time
+			})
 			.ok_or(Error::IkmNoneAvailable)
 	}
 
@@ -474,15 +477,15 @@ mod ikm_management {
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
 
-		let latest_ikm = lst.get_latest_ikm().unwrap();
+		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 2);
 
 		lst.delete_ikm(2);
-		let latest_ikm = lst.get_latest_ikm().unwrap();
+		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 1);
 
 		lst.delete_ikm(1);
-		let res = lst.get_latest_ikm();
+		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_err());
 	}
 
@@ -492,15 +495,15 @@ mod ikm_management {
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
 
-		let latest_ikm = lst.get_latest_ikm().unwrap();
+		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 2);
 
 		let _ = lst.revoke_ikm(2);
-		let latest_ikm = lst.get_latest_ikm().unwrap();
+		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 1);
 
 		let _ = lst.revoke_ikm(1);
-		let res = lst.get_latest_ikm();
+		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_err());
 	}
 
@@ -518,14 +521,36 @@ mod ikm_management {
 	}
 
 	#[test]
-	fn get_latest_ikm() {
+	fn get_latest_ikm_epoch() {
 		let res = InputKeyMaterialList::import(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
-		let res = lst.get_latest_ikm();
+		let res = lst.get_latest_ikm(SystemTime::UNIX_EPOCH);
+		assert_eq!(res.err(), Some(Error::IkmNoneAvailable))
+	}
+
+	#[test]
+	fn get_latest_ikm_1_712_475_802() {
+		let ts = SystemTime::UNIX_EPOCH + Duration::from_secs(1_712_475_802);
+		let res = InputKeyMaterialList::import(TEST_STR);
+		assert!(res.is_ok(), "res: {res:?}");
+		let lst = res.unwrap();
+		let res = lst.get_latest_ikm(ts);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ikm = res.unwrap();
 		assert_eq!(ikm.id, 3);
+	}
+
+	#[test]
+	fn get_latest_ikm_1_592_734_902() {
+		let ts = SystemTime::UNIX_EPOCH + Duration::from_secs(1_592_734_902);
+		let res = InputKeyMaterialList::import(TEST_STR);
+		assert!(res.is_ok(), "res: {res:?}");
+		let lst = res.unwrap();
+		let res = lst.get_latest_ikm(ts);
+		assert!(res.is_ok(), "res: {res:?}");
+		let ikm = res.unwrap();
+		assert_eq!(ikm.id, 2);
 	}
 }
 
@@ -540,7 +565,7 @@ mod encryption {
 		let _ = lst.add_ikm();
 		let (not_before, not_after) = get_default_time_period();
 		let _ = lst.add_custom_ikm(Scheme::XChaCha20Poly1305WithBlake3, not_before, not_after);
-		let res = lst.get_latest_ikm();
+		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_ok(), "res: {res:?}");
 		let latest_ikm = res.unwrap();
 		assert_eq!(latest_ikm.id, 3);
@@ -555,7 +580,7 @@ mod encryption {
 		let _ = lst.add_ikm();
 		let (not_before, not_after) = get_default_time_period();
 		let _ = lst.add_custom_ikm(Scheme::Aes128GcmWithSha256, not_before, not_after);
-		let res = lst.get_latest_ikm();
+		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_ok(), "res: {res:?}");
 		let latest_ikm = res.unwrap();
 		assert_eq!(latest_ikm.id, 3);
@@ -566,7 +591,7 @@ mod encryption {
 	#[test]
 	fn get_latest_ikm_empty() {
 		let lst = InputKeyMaterialList::new();
-		let res = lst.get_latest_ikm();
+		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_err());
 	}
 

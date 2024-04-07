@@ -15,6 +15,7 @@ categories = ["cryptography"]
 default = ["encryption", "ikm-management"]
 encryption = []
 ikm-management = []
+encrypt-at = []
 
 [dependencies]
 aes-gcm = { version = "0.10.3", default-features = false, features = ["std", "aes"] }

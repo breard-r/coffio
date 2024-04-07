@@ -41,13 +41,34 @@ impl<'a> Coffio<'a> {
 		data_context: &DataContext,
 		data: impl AsRef<[u8]>,
 	) -> Result<String> {
+		self.process_encrypt_at(key_context, data_context, data, SystemTime::now())
+	}
+
+	#[cfg(feature = "encrypt-at")]
+	pub fn encrypt_at(
+		&self,
+		key_context: &KeyContext,
+		data_context: &DataContext,
+		data: impl AsRef<[u8]>,
+		encryption_time: SystemTime,
+	) -> Result<String> {
+		self.process_encrypt_at(key_context, data_context, data, encryption_time)
+	}
+
+	fn process_encrypt_at(
+		&self,
+		key_context: &KeyContext,
+		data_context: &DataContext,
+		data: impl AsRef<[u8]>,
+		encryption_time: SystemTime,
+	) -> Result<String> {
 		let tp = if key_context.is_periodic() {
-			let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+			let ts = encryption_time.duration_since(UNIX_EPOCH)?.as_secs();
 			key_context.get_time_period(ts)
 		} else {
 			None
 		};
-		let ikm = self.ikm_list.get_latest_ikm()?;
+		let ikm = self.ikm_list.get_latest_ikm(encryption_time)?;
 		let key = derive_key(ikm, key_context, tp);
 		let gen_nonce_function = ikm.scheme.get_gen_nonce();
 		let nonce = gen_nonce_function()?;
