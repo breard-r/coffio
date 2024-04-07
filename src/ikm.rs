@@ -266,8 +266,14 @@ impl InputKeyMaterialList {
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
-	pub fn delete_ikm(&mut self, id: IkmId) {
+	pub fn delete_ikm(&mut self, id: IkmId) -> Result<()> {
+		let initial_len = self.ikm_lst.len();
 		self.ikm_lst.retain(|ikm| ikm.id != id);
+		if self.ikm_lst.len() == initial_len {
+			Err(Error::IkmNotFound(id))
+		} else {
+			Ok(())
+		}
 	}
 
 	/// Revoke the specified IKM from the list.
@@ -563,13 +569,18 @@ mod ikm_management {
 		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 2);
 
-		lst.delete_ikm(2);
+		let res = lst.delete_ikm(2);
+		assert!(res.is_ok(), "res: {res:?}");
 		let latest_ikm = lst.get_latest_ikm(SystemTime::now()).unwrap();
 		assert_eq!(latest_ikm.id, 1);
 
-		lst.delete_ikm(1);
+		let res = lst.delete_ikm(1);
+		assert!(res.is_ok(), "res: {res:?}");
 		let res = lst.get_latest_ikm(SystemTime::now());
 		assert!(res.is_err());
+
+		let res = lst.delete_ikm(42);
+		assert!(res.is_err(), "res: {res:?}");
 	}
 
 	#[test]
