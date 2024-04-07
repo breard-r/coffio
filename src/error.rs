@@ -1,6 +1,6 @@
 pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 pub enum Error {
 	#[error("cipher error: {0}")]
 	ChaCha20Poly1305Error(chacha20poly1305::Error),
@@ -33,7 +33,7 @@ pub enum Error {
 	#[error("unable to generate random values: {0}")]
 	RandomSourceError(getrandom::Error),
 	#[error("system time error: {0}")]
-	SystemTimeError(std::time::SystemTimeError),
+	SystemTimeError(String),
 	#[error("system time error: {0}: unable to represent this timestamp as a system time")]
 	SystemTimeReprError(u64),
 }
@@ -58,6 +58,6 @@ impl From<getrandom::Error> for Error {
 
 impl From<std::time::SystemTimeError> for Error {
 	fn from(error: std::time::SystemTimeError) -> Self {
-		Error::SystemTimeError(error)
+		Error::SystemTimeError(error.to_string())
 	}
 }
