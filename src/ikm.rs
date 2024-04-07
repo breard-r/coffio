@@ -130,7 +130,7 @@ impl InputKeyMaterial {
 ///
 /// ```
 /// use coffio::{InputKeyMaterialList, Scheme};
-/// use std::time::Duration;
+/// use std::time::{Duration, SystemTime};
 ///
 /// // Create an empty IKM list.
 /// let mut ikml = InputKeyMaterialList::new();
@@ -141,9 +141,12 @@ impl InputKeyMaterial {
 /// assert_eq!(ikml.len(), 1);
 ///
 /// // Add an IKM to the list with custom settings.
+/// let not_before = SystemTime::now();
+/// let not_after = not_before + Duration::from_secs(315_569_252);
 /// let _ = ikml.add_custom_ikm(
 ///     Scheme::Aes128GcmWithSha256,
-///     Duration::from_secs(315_569_252),
+///     not_before,
+///     not_after,
 /// );
 /// assert_eq!(ikml.len(), 2);
 ///
@@ -182,24 +185,27 @@ impl InputKeyMaterialList {
 
 	#[cfg(feature = "ikm-management")]
 	pub fn add_ikm(&mut self) -> Result<()> {
-		self.add_custom_ikm(
-			crate::DEFAULT_SCHEME,
-			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
-		)
+		let not_before = SystemTime::now();
+		let not_after = not_before + Duration::from_secs(crate::DEFAULT_IKM_DURATION);
+		self.add_custom_ikm(crate::DEFAULT_SCHEME, not_before, not_after)
 	}
 
 	#[cfg(feature = "ikm-management")]
-	pub fn add_custom_ikm(&mut self, scheme: Scheme, duration: Duration) -> Result<()> {
+	pub fn add_custom_ikm(
+		&mut self,
+		scheme: Scheme,
+		not_before: SystemTime,
+		not_after: SystemTime,
+	) -> Result<()> {
 		let ikm_len = scheme.get_ikm_size();
 		let mut content: Vec<u8> = vec![0; ikm_len];
 		getrandom::getrandom(content.as_mut_slice())?;
-		let not_before = SystemTime::now();
 		self.id_counter += 1;
 		self.ikm_lst.push(InputKeyMaterial {
 			id: self.id_counter,
 			scheme,
 			not_before,
-			not_after: not_before + duration,
+			not_after,
 			is_revoked: false,
 			content,
 		});
@@ -317,6 +323,13 @@ mod tests {
 	}
 }
 
+#[cfg(test)]
+fn get_default_time_period() -> (SystemTime, SystemTime) {
+	let not_before = SystemTime::now();
+	let not_after = not_before + Duration::from_secs(crate::DEFAULT_IKM_DURATION);
+	(not_before, not_after)
+}
+
 #[cfg(all(test, feature = "ikm-management"))]
 mod ikm_management {
 	use super::*;
@@ -364,10 +377,8 @@ mod ikm_management {
 		assert_eq!(el.id, 1);
 		assert_eq!(el.is_revoked, false);
 
-		let res = lst.add_custom_ikm(
-			Scheme::XChaCha20Poly1305WithBlake3,
-			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
-		);
+		let (not_before, not_after) = get_default_time_period();
+		let res = lst.add_custom_ikm(Scheme::XChaCha20Poly1305WithBlake3, not_before, not_after);
 		assert!(res.is_ok(), "res: {res:?}");
 		assert_eq!(lst.id_counter, 2);
 		assert_eq!(lst.ikm_lst.len(), 2);
@@ -527,10 +538,8 @@ mod encryption {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
-		let _ = lst.add_custom_ikm(
-			Scheme::XChaCha20Poly1305WithBlake3,
-			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
-		);
+		let (not_before, not_after) = get_default_time_period();
+		let _ = lst.add_custom_ikm(Scheme::XChaCha20Poly1305WithBlake3, not_before, not_after);
 		let res = lst.get_latest_ikm();
 		assert!(res.is_ok(), "res: {res:?}");
 		let latest_ikm = res.unwrap();
@@ -544,10 +553,8 @@ mod encryption {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		let _ = lst.add_ikm();
-		let _ = lst.add_custom_ikm(
-			Scheme::Aes128GcmWithSha256,
-			Duration::from_secs(crate::DEFAULT_IKM_DURATION),
-		);
+		let (not_before, not_after) = get_default_time_period();
+		let _ = lst.add_custom_ikm(Scheme::Aes128GcmWithSha256, not_before, not_after);
 		let res = lst.get_latest_ikm();
 		assert!(res.is_ok(), "res: {res:?}");
 		let latest_ikm = res.unwrap();
