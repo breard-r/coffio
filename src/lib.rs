@@ -45,6 +45,6 @@ pub const DEFAULT_IKM_DURATION: u64 = 315_569_252;
 /// [tropical_year]: https://en.wikipedia.org/wiki/Tropical_year
 #[cfg(feature = "encryption")]
 pub const DEFAULT_KEY_CTX_PERIODICITY: u64 = 31_556_925;
-/// Default scheme used when adding a new IKM.
+/// Default scheme used when adding a new IKM. The value is `XChaCha20Poly1305WithBlake3`.
 #[cfg(feature = "ikm-management")]
-const DEFAULT_SCHEME: Scheme = Scheme::XChaCha20Poly1305WithBlake3;
+pub const DEFAULT_SCHEME: Scheme = Scheme::XChaCha20Poly1305WithBlake3;

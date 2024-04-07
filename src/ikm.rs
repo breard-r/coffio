@@ -195,9 +195,10 @@ impl InputKeyMaterialList {
 		Self::default()
 	}
 
-	/// Add a new IKM to the list. The `not_before` field will be set to the current timestamp and
-	/// the `not_after` will be set to the current timestamp plus the value of
-	/// [DEFAULT_IKM_DURATION][crate::DEFAULT_IKM_DURATION].
+	/// Add a new IKM to the list. The scheme will be set to the value of
+	/// [DEFAULT_SCHEME][crate::DEFAULT_SCHEME], the `not_before` field will be set to the current
+	/// timestamp and the `not_after` will be set to the current timestamp incremented with the
+	/// value of [DEFAULT_IKM_DURATION][crate::DEFAULT_IKM_DURATION].
 	///
 	/// # Examples
 	///
