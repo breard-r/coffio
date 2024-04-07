@@ -27,26 +27,31 @@ pub struct InputKeyMaterial {
 }
 
 impl InputKeyMaterial {
+	/// Returns the IKM's identifier.
 	#[cfg(feature = "ikm-management")]
 	pub fn get_id(&self) -> IkmId {
 		self.id
 	}
 
+	/// Returns the IKM's scheme.
 	#[cfg(feature = "ikm-management")]
 	pub fn get_scheme(&self) -> Scheme {
 		self.scheme
 	}
 
+	/// Returns the date before which the IKM must not be used to encrypt data.
 	#[cfg(feature = "ikm-management")]
 	pub fn get_not_before(&self) -> SystemTime {
 		self.not_before
 	}
 
+	/// Returns the date after which the IKM must not be used to encrypt data.
 	#[cfg(feature = "ikm-management")]
 	pub fn get_not_after(&self) -> SystemTime {
 		self.not_after
 	}
 
+	/// Check whether or not the IKM has been revoked.
 	#[cfg(feature = "ikm-management")]
 	pub fn is_revoked(&self) -> bool {
 		self.is_revoked
@@ -178,11 +183,29 @@ pub struct InputKeyMaterialList {
 }
 
 impl InputKeyMaterialList {
+	/// Create a new empty IKM list.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let ikml = coffio::InputKeyMaterialList::new();
+	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn new() -> Self {
 		Self::default()
 	}
 
+	/// Add a new IKM to the list. The `not_before` field will be set to the current timestamp and
+	/// the `not_after` will be set to the current timestamp plus the value of
+	/// [DEFAULT_IKM_DURATION][crate::DEFAULT_IKM_DURATION].
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut ikml = coffio::InputKeyMaterialList::new();
+	/// let _ = ikml.add_ikm()?;
+	/// # Ok::<(), coffio::Error>(())
+	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn add_ikm(&mut self) -> Result<()> {
 		let not_before = SystemTime::now();
@@ -190,6 +213,24 @@ impl InputKeyMaterialList {
 		self.add_custom_ikm(crate::DEFAULT_SCHEME, not_before, not_after)
 	}
 
+	/// Add a new IKM with a specified scheme, `not_before` and `not_after` fields.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// use coffio::{InputKeyMaterialList, Scheme};
+	/// use std::time::{Duration, SystemTime};
+	///
+	/// let mut ikml = InputKeyMaterialList::new();
+	/// let not_before = SystemTime::now();
+	/// let not_after = not_before + Duration::from_secs(315_569_252);
+	/// let _ = ikml.add_custom_ikm(
+	///     Scheme::XChaCha20Poly1305WithBlake3,
+	///     not_before,
+	///     not_after,
+	/// );
+	/// # Ok::<(), coffio::Error>(())
+	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn add_custom_ikm(
 		&mut self,
@@ -212,11 +253,33 @@ impl InputKeyMaterialList {
 		Ok(())
 	}
 
+	/// Delete the specified IKM from the list.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut ikml = coffio::InputKeyMaterialList::new();
+	/// let _ = ikml.add_ikm()?;
+	/// let ikm_id = ikml[0].get_id();
+	/// ikml.delete_ikm(ikm_id);
+	/// # Ok::<(), coffio::Error>(())
+	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn delete_ikm(&mut self, id: IkmId) {
 		self.ikm_lst.retain(|ikm| ikm.id != id);
 	}
 
+	/// Revoke the specified IKM from the list.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut ikml = coffio::InputKeyMaterialList::new();
+	/// let _ = ikml.add_ikm()?;
+	/// let ikm_id = ikml[0].get_id();
+	/// ikml.revoke_ikm(ikm_id);
+	/// # Ok::<(), coffio::Error>(())
+	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn revoke_ikm(&mut self, id: IkmId) -> Result<()> {
 		let ikm = self
@@ -228,11 +291,30 @@ impl InputKeyMaterialList {
 		Ok(())
 	}
 
+	/// Export the IKM list to a displayable string.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let mut ikml = coffio::InputKeyMaterialList::new();
+	/// let _ = ikml.add_ikm()?;
+	/// let exported_ikml = ikml.export()?;
+	/// # Ok::<(), coffio::Error>(())
+	/// ```
 	#[cfg(feature = "ikm-management")]
 	pub fn export(&self) -> Result<String> {
 		crate::storage::encode_ikm_list(self)
 	}
 
+	/// Import an IKM list.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// let stored_ikml = "AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+	/// let mut ikml = coffio::InputKeyMaterialList::import(stored_ikml)?;
+	/// # Ok::<(), coffio::Error>(())
+	/// ```
 	pub fn import(s: &str) -> Result<Self> {
 		crate::storage::decode_ikm_list(s)
 	}
