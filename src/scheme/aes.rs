@@ -5,7 +5,7 @@ use aes_gcm::{Aes128Gcm, Key, Nonce};
 
 // 96 bits (12 bytes)
 // Reason: NIST Special Publication 800-38D
-// https://csrc.nist.gov/pubs/sp/800/38/d/final
+// https://doi.org/10.6028/NIST.SP.800-38D
 // Section 5.2.1.1 recommends that implementations restrict support to 96 bit.
 // Section 8.2 states that nonces of 96 bits and higher may be randomly generated.
 const NONCE_SIZE: usize = 12;

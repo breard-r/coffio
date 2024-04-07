@@ -51,7 +51,7 @@ pub enum Scheme {
 	/// - Nonce size: 192 bits
 	/// - Max data size: 256 GB
 	/// - Max invocations: no limitation
-	/// - Resources: [RFC 7539](https://datatracker.ietf.org/doc/html/rfc7539),
+	/// - Resources: [RFC 7539](https://doi.org/10.17487/RFC7539)
 	/// [draft-irtf-cfrg-xchacha](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha)
 	XChaCha20Poly1305WithBlake3 = 1,
 	/// - Key derivation: HKDF-SHA256
