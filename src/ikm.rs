@@ -226,7 +226,7 @@ impl InputKeyMaterialList {
 	///     Scheme::XChaCha20Poly1305WithBlake3,
 	///     not_before,
 	///     not_after,
-	/// );
+	/// )?;
 	/// # Ok::<(), coffio::Error>(())
 	/// ```
 	#[cfg(feature = "ikm-management")]
