@@ -21,8 +21,8 @@ pub struct InputKeyMaterial {
 	pub id: IkmId,
 	pub scheme: Scheme,
 	pub(crate) content: Vec<u8>,
-	pub created_at: SystemTime,
-	pub expire_at: SystemTime,
+	pub not_before: SystemTime,
+	pub not_after: SystemTime,
 	pub is_revoked: bool,
 }
 
@@ -35,14 +35,14 @@ impl InputKeyMaterial {
 		res.extend_from_slice(&self.content);
 		res.extend_from_slice(
 			&self
-				.created_at
+				.not_before
 				.duration_since(SystemTime::UNIX_EPOCH)?
 				.as_secs()
 				.to_le_bytes(),
 		);
 		res.extend_from_slice(
 			&self
-				.expire_at
+				.not_after
 				.duration_since(SystemTime::UNIX_EPOCH)?
 				.as_secs()
 				.to_le_bytes(),
@@ -65,8 +65,8 @@ impl InputKeyMaterial {
 			id: IkmId::from_le_bytes(b[0..4].try_into().unwrap()),
 			scheme,
 			content: b[8..8 + is].into(),
-			created_at: InputKeyMaterial::bytes_to_system_time(&b[8 + is..8 + is + 8])?,
-			expire_at: InputKeyMaterial::bytes_to_system_time(&b[8 + is + 8..8 + is + 8 + 8])?,
+			not_before: InputKeyMaterial::bytes_to_system_time(&b[8 + is..8 + is + 8])?,
+			not_after: InputKeyMaterial::bytes_to_system_time(&b[8 + is + 8..8 + is + 8 + 8])?,
 			is_revoked: b[8 + is + 8 + 8] != 0,
 		})
 	}
@@ -168,13 +168,13 @@ impl InputKeyMaterialList {
 		let ikm_len = scheme.get_ikm_size();
 		let mut content: Vec<u8> = vec![0; ikm_len];
 		getrandom::getrandom(content.as_mut_slice())?;
-		let created_at = SystemTime::now();
+		let not_before = SystemTime::now();
 		self.id_counter += 1;
 		self.ikm_lst.push(InputKeyMaterial {
 			id: self.id_counter,
 			scheme,
-			created_at,
-			expire_at: created_at + duration,
+			not_before,
+			not_after: not_before + duration,
 			is_revoked: false,
 			content,
 		});
@@ -212,7 +212,7 @@ impl InputKeyMaterialList {
 		self.ikm_lst
 			.iter()
 			.rev()
-			.find(|&ikm| !ikm.is_revoked && ikm.created_at < now && ikm.expire_at > now)
+			.find(|&ikm| !ikm.is_revoked && ikm.not_before < now && ikm.not_after > now)
 			.ok_or(Error::IkmNoneAvailable)
 	}
 
@@ -297,23 +297,23 @@ mod ikm_management {
 	use super::*;
 
 	// This list contains the folowing IKM:
-	// 1: * created_at: Monday 1 April 2019 10:21:42
-	//    * expire_at: Wednesday 1 April 2020 10:21:42
+	// 1: * not_before: Monday 1 April 2019 10:21:42
+	//    * not_after: Wednesday 1 April 2020 10:21:42
 	//    * is_revoked: true
-	// 2: * created_at: Thursday 12 March 2020 10:21:42
-	//    * expire_at: Friday 12 March 2021 10:21:42
+	// 2: * not_before: Thursday 12 March 2020 10:21:42
+	//    * not_after: Friday 12 March 2021 10:21:42
 	//    * is_revoked: false
-	// 3: * created_at: Sunday 21 February 2021 10:21:42
-	//    * expire_at: Thursday 10 February 2180 10:21:42
+	// 3: * not_before: Sunday 21 February 2021 10:21:42
+	//    * not_after: Thursday 10 February 2180 10:21:42
 	//    * is_revoked: false
-	// 4: * created_at: Sunday 30 January 2022 10:21:42
-	//    * expire_at: Tuesday 10 January 2023 10:21:42
+	// 4: * not_before: Sunday 30 January 2022 10:21:42
+	//    * not_after: Tuesday 10 January 2023 10:21:42
 	//    * is_revoked: false
-	// 5: * created_at: Tuesday 2 January 2024 10:21:42
-	//    * expire_at: Tuesday 6 June 2180 10:21:42
+	// 5: * not_before: Tuesday 2 January 2024 10:21:42
+	//    * not_after: Tuesday 6 June 2180 10:21:42
 	//    * is_revoked: true
-	// 6: * created_at: Tuesday 15 August 2180 10:21:42
-	//    * expire_at: Wednesday 15 August 2181 10:21:42
+	// 6: * not_before: Tuesday 15 August 2180 10:21:42
+	//    * not_after: Wednesday 15 August 2181 10:21:42
 	//    * is_revoked: false
 	const TEST_STR: &str = "BgAAAA:AQAAAAEAAACUAPcqngJ46_HMtJSdIw-WeUtImcCVxOA47n6UIN5K2TbmoVwAAAAANmuEXgAAAAAB:AgAAAAEAAADf7CR8vl_aWOUyfsO0ek0YQr_Yi7L_sJmF2nIt_XOaCzYNal4AAAAAtkBLYAAAAAAA:AwAAAAEAAAAMoNIW9gIGkzegUDEsU3N1Rf_Zz0OMuylUSiQjUzLXqzY0MmAAAAAANsk0iwEAAAAA:BAAAAAEAAABbwRrMz3x3DkfOEFg1BHfLLRHoNqg6d_xGWwdh48hH8rZm9mEAAAAANjy9YwAAAAAA:BQAAAAEAAAA2LwnTgDUF7qn7dy79VA24JSSgo6vllAtU5zmhrxNJu7YIz4sBAAAANoUMjgEAAAAB:BgAAAAEAAAAn0Vqe2f9YRXBt6xVYaeSLs0Gf0S0_5B-hk-a2b0rhlraCJbwAAAAAtlErjAEAAAAA";
 
@@ -426,8 +426,8 @@ mod ikm_management {
 			let el_bis = &lst_bis.ikm_lst[i];
 			assert_eq!(el_bis.id, el.id);
 			assert_eq!(el_bis.content, el.content);
-			assert_eq!(el_bis.created_at, round_time(el.created_at));
-			assert_eq!(el_bis.expire_at, round_time(el.expire_at));
+			assert_eq!(el_bis.not_before, round_time(el.not_before));
+			assert_eq!(el_bis.not_after, round_time(el.not_after));
 			assert_eq!(el_bis.is_revoked, el.is_revoked);
 		}
 	}

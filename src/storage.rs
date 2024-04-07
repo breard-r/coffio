@@ -172,30 +172,30 @@ mod ikm_lst {
 		let mut lst = crate::InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
 		lst.ikm_lst[0].content = TEST_CTN_0.to_vec();
-		lst.ikm_lst[0].created_at = bytes_to_system_time(1554114102);
-		lst.ikm_lst[0].expire_at = bytes_to_system_time(1585736502);
+		lst.ikm_lst[0].not_before = bytes_to_system_time(1554114102);
+		lst.ikm_lst[0].not_after = bytes_to_system_time(1585736502);
 		lst.ikm_lst[0].is_revoked = true;
 		let _ = lst.add_ikm();
 		lst.ikm_lst[1].content = TEST_CTN_1.to_vec();
-		lst.ikm_lst[1].created_at = bytes_to_system_time(1584008502);
-		lst.ikm_lst[1].expire_at = bytes_to_system_time(1615544502);
+		lst.ikm_lst[1].not_before = bytes_to_system_time(1584008502);
+		lst.ikm_lst[1].not_after = bytes_to_system_time(1615544502);
 		let _ = lst.add_ikm();
 		lst.ikm_lst[2].content = TEST_CTN_2.to_vec();
-		lst.ikm_lst[2].created_at = bytes_to_system_time(1613902902);
-		lst.ikm_lst[2].expire_at = bytes_to_system_time(6630459702);
+		lst.ikm_lst[2].not_before = bytes_to_system_time(1613902902);
+		lst.ikm_lst[2].not_after = bytes_to_system_time(6630459702);
 		let _ = lst.add_ikm();
 		lst.ikm_lst[3].content = TEST_CTN_3.to_vec();
-		lst.ikm_lst[3].created_at = bytes_to_system_time(1643538102);
-		lst.ikm_lst[3].expire_at = bytes_to_system_time(1673346102);
+		lst.ikm_lst[3].not_before = bytes_to_system_time(1643538102);
+		lst.ikm_lst[3].not_after = bytes_to_system_time(1673346102);
 		let _ = lst.add_ikm();
 		lst.ikm_lst[4].content = TEST_CTN_4.to_vec();
-		lst.ikm_lst[4].created_at = bytes_to_system_time(6640568502);
-		lst.ikm_lst[4].expire_at = bytes_to_system_time(6678152502);
+		lst.ikm_lst[4].not_before = bytes_to_system_time(6640568502);
+		lst.ikm_lst[4].not_after = bytes_to_system_time(6678152502);
 		lst.ikm_lst[4].is_revoked = true;
 		let _ = lst.add_ikm();
 		lst.ikm_lst[5].content = TEST_CTN_5.to_vec();
-		lst.ikm_lst[5].created_at = bytes_to_system_time(3156574902);
-		lst.ikm_lst[5].expire_at = bytes_to_system_time(6646616502);
+		lst.ikm_lst[5].not_before = bytes_to_system_time(3156574902);
+		lst.ikm_lst[5].not_after = bytes_to_system_time(6646616502);
 
 		let s = super::encode_ikm_list(&lst).unwrap();
 		assert_eq!(s, TEST_STR);
@@ -209,33 +209,33 @@ mod ikm_lst {
 		assert_eq!(lst.id_counter, 6);
 		assert_eq!(lst.ikm_lst[0].id, 1);
 		assert_eq!(lst.ikm_lst[0].content, TEST_CTN_0);
-		assert_eq!(as_ts!(lst.ikm_lst[0].created_at), 1554114102);
-		assert_eq!(as_ts!(lst.ikm_lst[0].expire_at), 1585736502);
+		assert_eq!(as_ts!(lst.ikm_lst[0].not_before), 1554114102);
+		assert_eq!(as_ts!(lst.ikm_lst[0].not_after), 1585736502);
 		assert_eq!(lst.ikm_lst[0].is_revoked, true);
 		assert_eq!(lst.ikm_lst[1].id, 2);
 		assert_eq!(lst.ikm_lst[1].content, TEST_CTN_1);
-		assert_eq!(as_ts!(lst.ikm_lst[1].created_at), 1584008502);
-		assert_eq!(as_ts!(lst.ikm_lst[1].expire_at), 1615544502);
+		assert_eq!(as_ts!(lst.ikm_lst[1].not_before), 1584008502);
+		assert_eq!(as_ts!(lst.ikm_lst[1].not_after), 1615544502);
 		assert_eq!(lst.ikm_lst[1].is_revoked, false);
 		assert_eq!(lst.ikm_lst[2].id, 3);
 		assert_eq!(lst.ikm_lst[2].content, TEST_CTN_2);
-		assert_eq!(as_ts!(lst.ikm_lst[2].created_at), 1613902902);
-		assert_eq!(as_ts!(lst.ikm_lst[2].expire_at), 6630459702);
+		assert_eq!(as_ts!(lst.ikm_lst[2].not_before), 1613902902);
+		assert_eq!(as_ts!(lst.ikm_lst[2].not_after), 6630459702);
 		assert_eq!(lst.ikm_lst[2].is_revoked, false);
 		assert_eq!(lst.ikm_lst[3].id, 4);
 		assert_eq!(lst.ikm_lst[3].content, TEST_CTN_3);
-		assert_eq!(as_ts!(lst.ikm_lst[3].created_at), 1643538102);
-		assert_eq!(as_ts!(lst.ikm_lst[3].expire_at), 1673346102);
+		assert_eq!(as_ts!(lst.ikm_lst[3].not_before), 1643538102);
+		assert_eq!(as_ts!(lst.ikm_lst[3].not_after), 1673346102);
 		assert_eq!(lst.ikm_lst[3].is_revoked, false);
 		assert_eq!(lst.ikm_lst[4].id, 5);
 		assert_eq!(lst.ikm_lst[4].content, TEST_CTN_4);
-		assert_eq!(as_ts!(lst.ikm_lst[4].created_at), 6640568502);
-		assert_eq!(as_ts!(lst.ikm_lst[4].expire_at), 6678152502);
+		assert_eq!(as_ts!(lst.ikm_lst[4].not_before), 6640568502);
+		assert_eq!(as_ts!(lst.ikm_lst[4].not_after), 6678152502);
 		assert_eq!(lst.ikm_lst[4].is_revoked, true);
 		assert_eq!(lst.ikm_lst[5].id, 6);
 		assert_eq!(lst.ikm_lst[5].content, TEST_CTN_5);
-		assert_eq!(as_ts!(lst.ikm_lst[5].created_at), 3156574902);
-		assert_eq!(as_ts!(lst.ikm_lst[5].expire_at), 6646616502);
+		assert_eq!(as_ts!(lst.ikm_lst[5].not_before), 3156574902);
+		assert_eq!(as_ts!(lst.ikm_lst[5].not_after), 6646616502);
 		assert_eq!(lst.ikm_lst[5].is_revoked, false);
 	}
 
@@ -262,12 +262,12 @@ mod ikm_lst {
 			assert_eq!(lst.ikm_lst[i].scheme, lst2.ikm_lst[i].scheme);
 			assert_eq!(lst.ikm_lst[i].content, lst2.ikm_lst[i].content);
 			assert_eq!(
-				as_ts!(lst.ikm_lst[i].created_at),
-				as_ts!(lst2.ikm_lst[i].created_at)
+				as_ts!(lst.ikm_lst[i].not_before),
+				as_ts!(lst2.ikm_lst[i].not_before)
 			);
 			assert_eq!(
-				as_ts!(lst.ikm_lst[i].expire_at),
-				as_ts!(lst2.ikm_lst[i].expire_at)
+				as_ts!(lst.ikm_lst[i].not_after),
+				as_ts!(lst2.ikm_lst[i].not_after)
 			);
 			assert_eq!(lst.ikm_lst[i].is_revoked, lst2.ikm_lst[i].is_revoked);
 		}
