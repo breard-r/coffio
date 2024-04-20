@@ -115,6 +115,7 @@ mod tests {
 		ctx
 	}
 
+	#[cfg(feature = "chacha")]
 	fn get_ikm_lst_chacha20poly1305_blake3() -> InputKeyMaterialList {
 		InputKeyMaterialList::import(
 			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA",
@@ -122,6 +123,7 @@ mod tests {
 		.unwrap()
 	}
 
+	#[cfg(feature = "aes")]
 	fn get_ikm_lst_aes128gcm_sha256() -> InputKeyMaterialList {
 		InputKeyMaterialList::import(
 			"AQAAAA:AQAAAAIAAAA2lXqTSduZ22J0LiwEhmENjB6pLo0GVKvAQYocJcAAp1f8_2UAAAAAuzDPeAAAAAAA",
@@ -130,6 +132,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn encrypt_decrypt_no_context_chacha20poly1305_blake3() {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = get_static_empty_key_ctx();
@@ -151,6 +154,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "aes")]
 	fn encrypt_decrypt_no_context_aes128gcm_sha256() {
 		let lst = get_ikm_lst_aes128gcm_sha256();
 		let key_ctx = get_static_empty_key_ctx();
@@ -172,6 +176,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn encrypt_decrypt_with_static_context_chacha20poly1305_blake3() {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = get_static_key_ctx();
@@ -193,6 +198,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "aes")]
 	fn encrypt_decrypt_with_static_context_aes128gcm_sha256() {
 		let lst = get_ikm_lst_aes128gcm_sha256();
 		let key_ctx = get_static_key_ctx();
@@ -214,6 +220,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn encrypt_decrypt_with_context_chacha20poly1305_blake3() {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
@@ -235,6 +242,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "aes")]
 	fn encrypt_decrypt_with_context_aes128gcm_sha256() {
 		let lst = get_ikm_lst_aes128gcm_sha256();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);
@@ -256,6 +264,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn decrypt_invalid_ciphertext() {
 		let tests = &[
 			("", "empty data"),
@@ -284,6 +293,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn invalid_context() {
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
 		let key_ctx = KeyContext::from(TEST_KEY_CTX);

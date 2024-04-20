@@ -2,6 +2,10 @@ pub(crate) type Result<T, E = Error> = core::result::Result<T, E>;
 
 #[derive(thiserror::Error, Debug, PartialEq)]
 pub enum Error {
+	#[cfg(feature = "aes")]
+	#[error("cipher error: {0}")]
+	AesGcmError(aes_gcm::Error),
+	#[cfg(feature = "chacha")]
 	#[error("cipher error: {0}")]
 	ChaCha20Poly1305Error(chacha20poly1305::Error),
 	#[error("ikm error: no input key material available")]
@@ -44,6 +48,14 @@ impl From<base64ct::Error> for Error {
 	}
 }
 
+#[cfg(all(feature = "aes", not(feature = "chacha")))]
+impl From<aes_gcm::Error> for Error {
+	fn from(error: aes_gcm::Error) -> Self {
+		Error::AesGcmError(error)
+	}
+}
+
+#[cfg(feature = "chacha")]
 impl From<chacha20poly1305::Error> for Error {
 	fn from(error: chacha20poly1305::Error) -> Self {
 		Error::ChaCha20Poly1305Error(error)

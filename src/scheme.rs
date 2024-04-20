@@ -6,13 +6,13 @@ use crate::error::Result;
 use crate::kdf::KdfFunction;
 use crate::Error;
 
-#[cfg(feature = "encryption")]
+#[cfg(feature = "aes")]
 mod aes;
-#[cfg(feature = "encryption")]
+#[cfg(feature = "chacha")]
 mod blake3;
-#[cfg(feature = "encryption")]
+#[cfg(feature = "aes")]
 mod sha2;
-#[cfg(feature = "encryption")]
+#[cfg(feature = "chacha")]
 mod xchacha20poly1305;
 
 #[cfg(feature = "encryption")]
@@ -53,6 +53,7 @@ pub enum Scheme {
 	/// - Max invocations: no limitation
 	/// - Resources: [RFC 7539](https://doi.org/10.17487/RFC7539)
 	/// [draft-irtf-cfrg-xchacha](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha)
+	#[cfg(feature = "chacha")]
 	XChaCha20Poly1305WithBlake3 = 1,
 	/// - Key derivation: HKDF-SHA256
 	/// - Encryption: AES-GCM
@@ -61,13 +62,16 @@ pub enum Scheme {
 	/// - Max data size: 64 GB
 	/// - Max invocations: 2<sup>32</sup>
 	/// - Resources: [NIST SP 800-38D](https://doi.org/10.6028/NIST.SP.800-38D)
+	#[cfg(feature = "aes")]
 	Aes128GcmWithSha256 = 2,
 }
 
 impl Scheme {
 	pub(crate) fn get_ikm_size(&self) -> usize {
 		match self {
+			#[cfg(feature = "chacha")]
 			Scheme::XChaCha20Poly1305WithBlake3 => 32,
+			#[cfg(feature = "aes")]
 			Scheme::Aes128GcmWithSha256 => 32,
 		}
 	}
@@ -77,34 +81,36 @@ impl Scheme {
 impl Scheme {
 	pub(crate) fn get_kdf(&self) -> Box<KdfFunction> {
 		match self {
+			#[cfg(feature = "chacha")]
 			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(blake3::blake3_derive),
+			#[cfg(feature = "aes")]
 			Scheme::Aes128GcmWithSha256 => Box::new(sha2::sha256_derive),
 		}
 	}
 
 	pub(crate) fn get_decryption(&self) -> Box<DecryptionFunction> {
 		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => {
-				Box::new(xchacha20poly1305::xchacha20poly1305_decrypt)
-			}
+			#[cfg(feature = "chacha")]
+			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(xchacha20poly1305::xchacha20poly1305_decrypt),
+			#[cfg(feature = "aes")]
 			Scheme::Aes128GcmWithSha256 => Box::new(aes::aes128gcm_decrypt),
 		}
 	}
 
 	pub(crate) fn get_encryption(&self) -> Box<EncryptionFunction> {
 		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => {
-				Box::new(xchacha20poly1305::xchacha20poly1305_encrypt)
-			}
+			#[cfg(feature = "chacha")]
+			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(xchacha20poly1305::xchacha20poly1305_encrypt),
+			#[cfg(feature = "aes")]
 			Scheme::Aes128GcmWithSha256 => Box::new(aes::aes128gcm_encrypt),
 		}
 	}
 
 	pub(crate) fn get_gen_nonce(&self) -> Box<GenNonceFunction> {
 		match self {
-			Scheme::XChaCha20Poly1305WithBlake3 => {
-				Box::new(xchacha20poly1305::xchacha20poly1305_gen_nonce)
-			}
+			#[cfg(feature = "chacha")]
+			Scheme::XChaCha20Poly1305WithBlake3 => Box::new(xchacha20poly1305::xchacha20poly1305_gen_nonce),
+			#[cfg(feature = "aes")]
 			Scheme::Aes128GcmWithSha256 => Box::new(aes::aes128gcm_gen_nonce),
 		}
 	}
@@ -115,7 +121,9 @@ impl TryFrom<SchemeSerializeType> for Scheme {
 
 	fn try_from(value: SchemeSerializeType) -> Result<Self, Self::Error> {
 		match value {
+			#[cfg(feature = "chacha")]
 			1 => Ok(Scheme::XChaCha20Poly1305WithBlake3),
+			#[cfg(feature = "aes")]
 			2 => Ok(Scheme::Aes128GcmWithSha256),
 			_ => Err(Error::ParsingSchemeUnknownScheme(value)),
 		}

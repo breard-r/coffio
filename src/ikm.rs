@@ -134,7 +134,7 @@ impl InputKeyMaterial {
 /// # Examples
 ///
 /// ```
-/// use coffio::{InputKeyMaterialList, Scheme};
+/// use coffio::{InputKeyMaterialList, Scheme, DEFAULT_SCHEME};
 /// use std::time::{Duration, SystemTime};
 ///
 /// // Create an empty IKM list.
@@ -149,7 +149,7 @@ impl InputKeyMaterial {
 /// let not_before = SystemTime::now();
 /// let not_after = not_before + Duration::from_secs(315_569_252);
 /// let ikm_id_2 = ikml.add_custom_ikm(
-///     Scheme::Aes128GcmWithSha256,
+///     DEFAULT_SCHEME,
 ///     not_before,
 ///     not_after,
 /// )?;
@@ -219,7 +219,7 @@ impl InputKeyMaterialList {
 	/// # Examples
 	///
 	/// ```
-	/// use coffio::{InputKeyMaterialList, Scheme};
+	/// use coffio::{InputKeyMaterialList, Scheme, DEFAULT_SCHEME};
 	/// use std::time::{Duration, SystemTime};
 	///
 	/// let mut ikml = InputKeyMaterialList::new();
@@ -227,7 +227,7 @@ impl InputKeyMaterialList {
 	/// let not_before = SystemTime::now();
 	/// let not_after = not_before + Duration::from_secs(315_569_252);
 	/// let _ = ikml.add_custom_ikm(
-	///     Scheme::XChaCha20Poly1305WithBlake3,
+	///     DEFAULT_SCHEME,
 	///     not_before,
 	///     not_after,
 	/// )?;
@@ -319,14 +319,19 @@ impl InputKeyMaterialList {
 
 	/// Import an IKM list.
 	///
-	/// # Examples
-	///
-	/// ```
-	/// let stored_ikml = "AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
-	/// let mut ikml = coffio::InputKeyMaterialList::import(stored_ikml)?;
-	/// assert_eq!(ikml.len(), 1);
-	/// # Ok::<(), coffio::Error>(())
-	/// ```
+	#[cfg_attr(
+		feature = "chacha",
+		doc = r##"
+# Examples
+
+```
+let stored_ikml = "AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+let mut ikml = coffio::InputKeyMaterialList::import(stored_ikml)?;
+assert_eq!(ikml.len(), 1);
+# Ok::<(), coffio::Error>(())
+```
+"##
+	)]
 	pub fn import(s: &str) -> Result<Self> {
 		crate::storage::decode_ikm_list(s)
 	}
@@ -376,6 +381,7 @@ mod tests {
 	use std::str::FromStr;
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn import() {
 		let s =
 			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
@@ -398,6 +404,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn from_str() {
 		let s =
 			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
@@ -460,6 +467,7 @@ mod ikm_management {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn gen_ikm_list() {
 		let mut lst = InputKeyMaterialList::new();
 		assert_eq!(lst.id_counter, 0);
@@ -511,6 +519,7 @@ mod ikm_management {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn import() {
 		let res = InputKeyMaterialList::import(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");
@@ -630,6 +639,7 @@ mod ikm_management {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn get_latest_ikm_epoch() {
 		let res = InputKeyMaterialList::import(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");
@@ -639,6 +649,7 @@ mod ikm_management {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn get_latest_ikm_1_712_475_802() {
 		let ts = SystemTime::UNIX_EPOCH + Duration::from_secs(1_712_475_802);
 		let res = InputKeyMaterialList::import(TEST_STR);
@@ -651,6 +662,7 @@ mod ikm_management {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn get_latest_ikm_1_592_734_902() {
 		let ts = SystemTime::UNIX_EPOCH + Duration::from_secs(1_592_734_902);
 		let res = InputKeyMaterialList::import(TEST_STR);
@@ -668,6 +680,7 @@ mod encryption {
 	use super::*;
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn get_latest_ikm_xchacha20poly1305_blake3() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
@@ -683,6 +696,7 @@ mod encryption {
 	}
 
 	#[test]
+	#[cfg(feature = "sha")]
 	fn get_latest_ikm_aes128gcm_sha256() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();

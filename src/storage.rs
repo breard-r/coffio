@@ -161,7 +161,7 @@ mod ikm_lst {
 	}
 
 	#[test]
-	#[cfg(feature = "ikm-management")]
+	#[cfg(all(feature = "ikm-management", feature = "chacha"))]
 	fn encode() {
 		use std::time::{Duration, SystemTime};
 		let bytes_to_system_time = |ts: u64| {
@@ -202,6 +202,7 @@ mod ikm_lst {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn decode() {
 		let res = super::decode_ikm_list(TEST_STR);
 		assert!(res.is_ok(), "res: {res:?}");

@@ -29,6 +29,7 @@ mod tests {
 	];
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn derive_key_no_tp() {
 		let ikm = InputKeyMaterial::from_bytes(TEST_RAW_IKM).unwrap();
 		let ctx = KeyContext::from(["some", "context"]);
@@ -43,6 +44,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn derive_key_tp_0() {
 		let ikm = InputKeyMaterial::from_bytes(TEST_RAW_IKM).unwrap();
 		let ctx = KeyContext::from(["some", "context"]);
@@ -57,6 +59,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg(feature = "chacha")]
 	fn derive_key_tp_42() {
 		let ikm = InputKeyMaterial::from_bytes(TEST_RAW_IKM).unwrap();
 		let ctx = KeyContext::from(["some", "context"]);
