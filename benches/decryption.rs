@@ -1,6 +1,6 @@
 mod data;
 
-use coffio::{CipherBox, DataContext, InputKeyMaterialList, KeyContext};
+use coffio::{Coffio, DataContext, InputKeyMaterialList, KeyContext};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use data::{
 	Data, AES128GCM_SHA256_INPUTS, DATA_CTX, IKML_AES128GCM_SHA256, IKML_XCHACHA20POLY1305_BLAKE3,
@@ -23,7 +23,7 @@ fn decrypt_coffio(ikml: &str, input: &str) {
 	let ikm = InputKeyMaterialList::import(ikml).unwrap();
 	let key_ctx = KeyContext::from(KEY_CTX);
 	let data_ctx = DataContext::from(DATA_CTX);
-	let cb = CipherBox::new(&ikm);
+	let cb = Coffio::new(&ikm);
 	if let Err(e) = cb.decrypt(&key_ctx, &data_ctx, input) {
 		assert!(false, "{e}");
 	}
