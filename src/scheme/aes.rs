@@ -3,6 +3,7 @@ use crate::error::{Error, Result};
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes128Gcm, Key, Nonce};
 
+pub(crate) const AES128_KEY_SIZE: usize = 128;
 // 96 bits (12 bytes)
 // Reason: NIST Special Publication 800-38D
 // https://doi.org/10.6028/NIST.SP.800-38D

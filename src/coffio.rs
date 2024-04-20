@@ -98,7 +98,7 @@ mod tests {
 	use super::*;
 	use crate::{DataContext, KeyContext};
 
-	const TEST_CIPHERTEXT: &str = "AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA";
+	const TEST_CIPHERTEXT: &str = "AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA";
 	const TEST_DATA: &[u8] = b"Lorem ipsum dolor sit amet.";
 	const TEST_KEY_CTX: &[&str] = &["db_name", "table_name", "column_name"];
 	const TEST_DATA_CTX: &[&str] = &["018db876-3d9d-79af-9460-55d17da991d8"];
@@ -268,12 +268,12 @@ mod tests {
 	fn decrypt_invalid_ciphertext() {
 		let tests = &[
 			("", "empty data"),
-			("AQAATA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA", "unknown ikm id"),
-			("AQAAAA:MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA", "invalid nonce"),
-			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:8e_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NgAAAAAAAAA", "invalid ciphertext"),
-			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:NaAAAAAAAAA", "invalid time period"),
-			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg:", "empty time period"),
-			("AQAAAA:W-nzcGkPU6eWj_JjjqLpQk6WSe_CIUPF:we_HR8yD3XnQ9aaJlZFvqPitnDlQHexw4QPaYaOTzpHSWNW86QQrLRRZOg", "missing time period"),
+			("AQAATA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "unknown ikm id"),
+			("AQAAAA:8pVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid nonce"),
+			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:8TkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid ciphertext"),
+			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NaAAAAAAAAA", "invalid time period"),
+			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:", "empty time period"),
+			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg", "missing time period"),
 		];
 
 		let lst = get_ikm_lst_chacha20poly1305_blake3();

@@ -3,6 +3,7 @@ use crate::error::{Error, Result};
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
 
+pub(crate) const KEY_SIZE: usize = 256;
 // X-variant: the nonce's size is 192 bits (24 bytes)
 const NONCE_SIZE: usize = 24;
 

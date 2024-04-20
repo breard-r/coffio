@@ -88,6 +88,15 @@ impl Scheme {
 		}
 	}
 
+	pub(crate) fn get_key_len(&self) -> usize {
+		match self {
+			#[cfg(feature = "chacha")]
+			Scheme::XChaCha20Poly1305WithBlake3 => xchacha20poly1305::KEY_SIZE,
+			#[cfg(feature = "aes")]
+			Scheme::Aes128GcmWithSha256 => aes::AES128_KEY_SIZE,
+		}
+	}
+
 	pub(crate) fn get_decryption(&self) -> Box<DecryptionFunction> {
 		match self {
 			#[cfg(feature = "chacha")]
