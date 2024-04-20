@@ -18,7 +18,7 @@ mod scheme;
 mod storage;
 
 #[cfg(feature = "encryption")]
-pub use coffio::Coffio;
+pub use crate::coffio::Coffio;
 #[cfg(feature = "encryption")]
 pub use context::{DataContext, KeyContext};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
