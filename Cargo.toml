@@ -1,12 +1,12 @@
 [package]
 name = "coffio"
 version = "0.1.0"
-authors = ["Rodolphe Breard <rodolphe@what.tf>"]
+authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
 edition = "2021"
 description = "Abstraction layer for symmetric data encryption, primarily designed for database column encryption."
 documentation = "https://docs.rs/coffio/"
 readme = "README.md"
-repository = "https://github.com/breard-r/libreauth"
+repository = "https://github.com/breard-r/coffio"
 license = "MIT OR Apache-2.0"
 keywords = ["cryptography", "encryption"]
 categories = ["cryptography"]
