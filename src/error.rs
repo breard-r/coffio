@@ -32,6 +32,8 @@ pub enum Error {
 	ParsingEncodedDataInvalidPartLen(usize, usize),
 	#[error("parsing error: encoded data: invalid timestamp: {0:?}")]
 	ParsingEncodedDataInvalidTimestamp(Vec<u8>),
+	#[error("parsing error: encoded data: invalid version")]
+	ParsingEncodedDataInvalidVersion,
 	#[error("parsing error: scheme: {0}: unknown scheme")]
 	ParsingSchemeUnknownScheme(crate::scheme::SchemeSerializeType),
 	#[error("unable to generate random values: {0}")]

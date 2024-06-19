@@ -325,7 +325,7 @@ impl InputKeyMaterialList {
 # Examples
 
 ```
-let stored_ikml = "AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+let stored_ikml = "ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 let mut ikml = coffio::InputKeyMaterialList::import(stored_ikml)?;
 assert_eq!(ikml.len(), 1);
 # Ok::<(), coffio::Error>(())
@@ -384,7 +384,7 @@ mod tests {
 	#[cfg(feature = "chacha")]
 	fn import() {
 		let s =
-			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+			"ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::import(s);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
@@ -407,7 +407,7 @@ mod tests {
 	#[cfg(feature = "chacha")]
 	fn from_str() {
 		let s =
-			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+			"ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::from_str(s);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
@@ -457,7 +457,7 @@ mod ikm_management {
 	// 6: * not_before: Tuesday 15 August 2180 10:21:42
 	//    * not_after: Wednesday 15 August 2181 10:21:42
 	//    * is_revoked: false
-	const TEST_STR: &str = "BgAAAA:AQAAAAEAAACUAPcqngJ46_HMtJSdIw-WeUtImcCVxOA47n6UIN5K2TbmoVwAAAAANmuEXgAAAAAB:AgAAAAEAAADf7CR8vl_aWOUyfsO0ek0YQr_Yi7L_sJmF2nIt_XOaCzYNal4AAAAAtkBLYAAAAAAA:AwAAAAEAAAAMoNIW9gIGkzegUDEsU3N1Rf_Zz0OMuylUSiQjUzLXqzY0MmAAAAAANsk0iwEAAAAA:BAAAAAEAAABbwRrMz3x3DkfOEFg1BHfLLRHoNqg6d_xGWwdh48hH8rZm9mEAAAAANjy9YwAAAAAA:BQAAAAEAAAA2LwnTgDUF7qn7dy79VA24JSSgo6vllAtU5zmhrxNJu7YIz4sBAAAANoUMjgEAAAAB:BgAAAAEAAAAn0Vqe2f9YRXBt6xVYaeSLs0Gf0S0_5B-hk-a2b0rhlraCJbwAAAAAtlErjAEAAAAA";
+	const TEST_STR: &str = "ikml-v1:BgAAAA:AQAAAAEAAACUAPcqngJ46_HMtJSdIw-WeUtImcCVxOA47n6UIN5K2TbmoVwAAAAANmuEXgAAAAAB:AgAAAAEAAADf7CR8vl_aWOUyfsO0ek0YQr_Yi7L_sJmF2nIt_XOaCzYNal4AAAAAtkBLYAAAAAAA:AwAAAAEAAAAMoNIW9gIGkzegUDEsU3N1Rf_Zz0OMuylUSiQjUzLXqzY0MmAAAAAANsk0iwEAAAAA:BAAAAAEAAABbwRrMz3x3DkfOEFg1BHfLLRHoNqg6d_xGWwdh48hH8rZm9mEAAAAANjy9YwAAAAAA:BQAAAAEAAAA2LwnTgDUF7qn7dy79VA24JSSgo6vllAtU5zmhrxNJu7YIz4sBAAAANoUMjgEAAAAB:BgAAAAEAAAAn0Vqe2f9YRXBt6xVYaeSLs0Gf0S0_5B-hk-a2b0rhlraCJbwAAAAAtlErjAEAAAAA";
 
 	fn round_time(t: SystemTime) -> SystemTime {
 		let secs = t.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
@@ -504,7 +504,7 @@ mod ikm_management {
 		let res = lst.export();
 		assert!(res.is_ok(), "res: {res:?}");
 		let s = res.unwrap();
-		assert_eq!(&s, "AAAAAA");
+		assert_eq!(&s, "ikml-v1:AAAAAA");
 	}
 
 	#[test]
@@ -515,7 +515,7 @@ mod ikm_management {
 		let res = lst.export();
 		assert!(res.is_ok(), "res: {res:?}");
 		let s = res.unwrap();
-		assert_eq!(s.len(), 83);
+		assert_eq!(s.len(), 91);
 	}
 
 	#[test]

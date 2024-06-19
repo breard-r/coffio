@@ -55,3 +55,5 @@ pub const DEFAULT_KEY_CTX_PERIODICITY: u64 = 31_556_925;
 pub const DEFAULT_SCHEME: Scheme = Scheme::XChaCha20Poly1305WithBlake3;
 #[cfg(all(feature = "ikm-management", feature = "aes", not(feature = "chacha")))]
 pub const DEFAULT_SCHEME: Scheme = Scheme::Aes128GcmWithSha256;
+const STORAGE_ENC_VERSION: &str = "enc-v1:";
+const STORAGE_IKML_VERSION: &str = "ikml-v1:";

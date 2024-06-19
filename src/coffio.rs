@@ -98,7 +98,7 @@ mod tests {
 	use super::*;
 	use crate::{DataContext, KeyContext};
 
-	const TEST_CIPHERTEXT: &str = "AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA";
+	const TEST_CIPHERTEXT: &str = "enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA";
 	const TEST_DATA: &[u8] = b"Lorem ipsum dolor sit amet.";
 	const TEST_KEY_CTX: &[&str] = &["db_name", "table_name", "column_name"];
 	const TEST_DATA_CTX: &[&str] = &["018db876-3d9d-79af-9460-55d17da991d8"];
@@ -118,7 +118,7 @@ mod tests {
 	#[cfg(feature = "chacha")]
 	fn get_ikm_lst_chacha20poly1305_blake3() -> InputKeyMaterialList {
 		InputKeyMaterialList::import(
-			"AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA",
+			"ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA",
 		)
 		.unwrap()
 	}
@@ -126,7 +126,7 @@ mod tests {
 	#[cfg(feature = "aes")]
 	fn get_ikm_lst_aes128gcm_sha256() -> InputKeyMaterialList {
 		InputKeyMaterialList::import(
-			"AQAAAA:AQAAAAIAAAA2lXqTSduZ22J0LiwEhmENjB6pLo0GVKvAQYocJcAAp1f8_2UAAAAAuzDPeAAAAAAA",
+			"ikml-v1:AQAAAA:AQAAAAIAAAA2lXqTSduZ22J0LiwEhmENjB6pLo0GVKvAQYocJcAAp1f8_2UAAAAAuzDPeAAAAAAA",
 		)
 		.unwrap()
 	}
@@ -143,8 +143,8 @@ mod tests {
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
-		assert!(ciphertext.starts_with("AQAAAA:"));
-		assert_eq!(ciphertext.len(), 98);
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 105);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -165,8 +165,8 @@ mod tests {
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
-		assert!(ciphertext.starts_with("AQAAAA:"));
-		assert_eq!(ciphertext.len(), 82);
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 89);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -187,8 +187,8 @@ mod tests {
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
-		assert!(ciphertext.starts_with("AQAAAA:"));
-		assert_eq!(ciphertext.len(), 98);
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 105);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -209,8 +209,8 @@ mod tests {
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
-		assert!(ciphertext.starts_with("AQAAAA:"));
-		assert_eq!(ciphertext.len(), 82);
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 89);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -231,8 +231,8 @@ mod tests {
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
-		assert!(ciphertext.starts_with("AQAAAA:"));
-		assert_eq!(ciphertext.len(), 110);
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 117);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -253,8 +253,8 @@ mod tests {
 		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
 		assert!(res.is_ok(), "res: {res:?}");
 		let ciphertext = res.unwrap();
-		assert!(ciphertext.starts_with("AQAAAA:"));
-		assert_eq!(ciphertext.len(), 94);
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 101);
 
 		// Decrypt
 		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
@@ -267,13 +267,14 @@ mod tests {
 	#[cfg(feature = "chacha")]
 	fn decrypt_invalid_ciphertext() {
 		let tests = &[
-			("", "empty data"),
-			("AQAATA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "unknown ikm id"),
-			("AQAAAA:8pVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid nonce"),
-			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:8TkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid ciphertext"),
-			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NaAAAAAAAAA", "invalid time period"),
-			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:", "empty time period"),
-			("AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg", "missing time period"),
+			("", "empty data 1"),
+			("env-v1:", "empty data 2"),
+			("enc-v1:AQAATA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "unknown ikm id"),
+			("enc-v1:AQAAAA:8pVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid nonce"),
+			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:8TkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid ciphertext"),
+			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NaAAAAAAAAA", "invalid time period"),
+			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:", "empty time period"),
+			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg", "missing time period"),
 		];
 
 		let lst = get_ikm_lst_chacha20poly1305_blake3();
