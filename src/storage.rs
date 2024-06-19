@@ -59,7 +59,7 @@ pub(crate) fn encode_cipher(
 pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
 	let data = data
 		.strip_prefix(crate::STORAGE_IKML_VERSION)
-		.ok_or(Error::ParsingEncodedDataInvalidVersion)?;
+		.ok_or(Error::ParsingEncodedDataInvalidIkmlVersion)?;
 	let v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	if v.is_empty() {
 		return Err(Error::ParsingEncodedDataInvalidIkmListLen(v.len()));
@@ -85,7 +85,7 @@ pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
 pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData, Option<u64>)> {
 	let data = data
 		.strip_prefix(crate::STORAGE_ENC_VERSION)
-		.ok_or(Error::ParsingEncodedDataInvalidVersion)?;
+		.ok_or(Error::ParsingEncodedDataInvalidEncVersion)?;
 	let mut v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	let time_period = if v.len() == NB_PARTS + 1 {
 		match v.pop() {
