@@ -16,10 +16,10 @@ fn encrypt_coffio(ikml: &str, input: &str) {
 }
 
 pub fn encryption_benchmark(c: &mut Criterion) {
-	let mut group = c.benchmark_group("Encryption");
-	group.measurement_time(Duration::from_secs(MEASUREMENT_TIME));
-	for (alg_name, ikml) in IKMLS.iter() {
-		for (input_name, input) in PLAIN_INPUTS.iter() {
+	for (input_name, input) in PLAIN_INPUTS.iter() {
+		let mut group = c.benchmark_group(format!("Encryption {input_name}"));
+		group.measurement_time(Duration::from_secs(MEASUREMENT_TIME));
+		for (alg_name, ikml) in IKMLS.iter() {
 			let data = Data { ikml, input };
 			group.bench_with_input(BenchmarkId::new(*alg_name, input_name), &data, |b, i| {
 				b.iter(|| encrypt_coffio(i.ikml, i.input))

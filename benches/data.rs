@@ -25,32 +25,30 @@ pub const PLAIN_INPUTS: &[(&str, &str)] = &[
 	("04 - 3 KB", include_str!("data/plain_04_l.txt")),
 	("05 - 1 MB", include_str!("data/plain_05_xl.txt")),
 ];
-pub const AES128GCM_SHA256_INPUTS: &[(&str, &str)] = &[
-	("01 - 12 B", include_str!("data/aes128gcm-sha256_01_xs.txt")),
-	("02 - 60 B", include_str!("data/aes128gcm-sha256_02_s.txt")),
-	("03 - 500 B", include_str!("data/aes128gcm-sha256_03_m.txt")),
-	("04 - 3 KB", include_str!("data/aes128gcm-sha256_04_l.txt")),
-	("05 - 1 MB", include_str!("data/aes128gcm-sha256_05_xl.txt")),
-];
-pub const XCHACHA20POLY1305_BLAKE3_INPUTS: &[(&str, &str)] = &[
+pub const ENCRYPTED_INPUTS: &[(&str, &str, &str)] = &[
 	(
 		"01 - 12 B",
+		include_str!("data/aes128gcm-sha256_01_xs.txt"),
 		include_str!("data/xchacha20poly1305-blake3_01_xs.txt"),
 	),
 	(
 		"02 - 60 B",
+		include_str!("data/aes128gcm-sha256_02_s.txt"),
 		include_str!("data/xchacha20poly1305-blake3_02_s.txt"),
 	),
 	(
 		"03 - 500 B",
+		include_str!("data/aes128gcm-sha256_03_m.txt"),
 		include_str!("data/xchacha20poly1305-blake3_03_m.txt"),
 	),
 	(
 		"04 - 3 KB",
+		include_str!("data/aes128gcm-sha256_04_l.txt"),
 		include_str!("data/xchacha20poly1305-blake3_04_l.txt"),
 	),
 	(
 		"05 - 1 MB",
+		include_str!("data/aes128gcm-sha256_05_xl.txt"),
 		include_str!("data/xchacha20poly1305-blake3_05_xl.txt"),
 	),
 ];

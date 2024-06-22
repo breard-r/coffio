@@ -3,19 +3,14 @@ mod data;
 use coffio::{Coffio, DataContext, InputKeyMaterialList, KeyContext};
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use data::{
-	Data, AES128GCM_SHA256_INPUTS, DATA_CTX, IKML_AES128GCM_SHA256, IKML_XCHACHA20POLY1305_BLAKE3,
-	KEY_CTX, MEASUREMENT_TIME, XCHACHA20POLY1305_BLAKE3_INPUTS,
+	Data, DATA_CTX, ENCRYPTED_INPUTS, IKML_AES128GCM_SHA256, IKML_XCHACHA20POLY1305_BLAKE3,
+	KEY_CTX, MEASUREMENT_TIME,
 };
 use std::time::Duration;
 
 macro_rules! alg_group {
 	($group: ident, $name: expr, $inputs: ident, $ikml: ident) => {
-		for (input_name, input) in $inputs.iter() {
-			let data = Data { ikml: $ikml, input };
-			$group.bench_with_input(BenchmarkId::new($name, input_name), &data, |b, i| {
-				b.iter(|| decrypt_coffio(i.ikml, i.input))
-			});
-		}
+		for (input_name, input) in $inputs.iter() {}
 	};
 }
 
@@ -30,20 +25,30 @@ fn decrypt_coffio(ikml: &str, input: &str) {
 }
 
 pub fn decryption_benchmark(c: &mut Criterion) {
-	let mut group = c.benchmark_group("Decryption");
-	group.measurement_time(Duration::from_secs(MEASUREMENT_TIME));
-	alg_group!(
-		group,
-		"Aes128GcmWithSha256",
-		AES128GCM_SHA256_INPUTS,
-		IKML_AES128GCM_SHA256
-	);
-	alg_group!(
-		group,
-		"XChaCha20Poly1305WithBlake3",
-		XCHACHA20POLY1305_BLAKE3_INPUTS,
-		IKML_XCHACHA20POLY1305_BLAKE3
-	);
+	for (name, input_aes, input_xchacha) in ENCRYPTED_INPUTS {
+		let mut group = c.benchmark_group(format!("Decryption {name}"));
+		group.measurement_time(Duration::from_secs(MEASUREMENT_TIME));
+
+		let data = Data {
+			ikml: IKML_AES128GCM_SHA256,
+			input: input_aes,
+		};
+		group.bench_with_input(
+			BenchmarkId::new("Aes128GcmWithSha256", name),
+			&data,
+			|b, i| b.iter(|| decrypt_coffio(i.ikml, i.input)),
+		);
+
+		let data = Data {
+			ikml: IKML_XCHACHA20POLY1305_BLAKE3,
+			input: input_xchacha,
+		};
+		group.bench_with_input(
+			BenchmarkId::new("XChaCha20Poly1305WithBlake3", name),
+			&data,
+			|b, i| b.iter(|| decrypt_coffio(i.ikml, i.input)),
+		);
+	}
 }
 
 criterion_group!(benches, decryption_benchmark);
