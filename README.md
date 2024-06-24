@@ -9,6 +9,9 @@
 
 # Coffio
 
+[![Build Status](https://github.com/breard-r/coffio/actions/workflows/ci.yml/badge.svg)](https://github.com/breard-r/coffio/actions/workflows/ci.yml)
+[![Coffio on crates.io](https://img.shields.io/crates/v/coffio.svg)](https://crates.io/crates/coffio)
+[![Coffio on docs.rs](https://docs.rs/coffio/badge.svg)](https://docs.rs/coffio/)
 ![License MIT OR Apache 2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)
 
 Abstraction layer for symmetric data encryption, primarily designed for
