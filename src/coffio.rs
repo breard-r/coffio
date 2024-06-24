@@ -5,11 +5,40 @@ use crate::kdf::derive_key;
 use crate::{storage, IkmId, InputKeyMaterialList};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// Base structure used to encrypt and decrypt data.
+///
+/// # Examples
+///
+/// ```
+/// # use coffio::{DataContext, InputKeyMaterialList, KeyContext};
+/// use coffio::Coffio;
+///
+/// # let ikml_raw = "ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+/// # let ikm_list = InputKeyMaterialList::import(ikml_raw)?;
+/// # let my_key_ctx: KeyContext = [
+/// #     "db name",
+/// #     "table name",
+/// #     "column name",
+/// # ].into();
+/// # let my_data_ctx: DataContext = [
+/// #     "694c721a-29e8-4793-b7a4-46a4a0bf1a70",
+/// #     "some username",
+/// # ].into();
+/// let data = b"Hello, World!";
+/// let coffio = Coffio::new(&ikm_list);
+/// let encrypted_data = coffio.encrypt(&my_key_ctx, &my_data_ctx, data)?;
+/// let decrypted_data = coffio.decrypt(&my_key_ctx, &my_data_ctx, &encrypted_data)?;
+///
+/// assert_eq!(data, decrypted_data.as_slice());
+///
+/// # Ok::<(), coffio::Error>(())
+/// ```
 pub struct Coffio<'a> {
 	ikm_list: &'a InputKeyMaterialList,
 }
 
 impl<'a> Coffio<'a> {
+	/// Initialize a new structure with an IKM list.
 	pub fn new(ikm_list: &'a InputKeyMaterialList) -> Self {
 		Self { ikm_list }
 	}
@@ -35,6 +64,8 @@ impl<'a> Coffio<'a> {
 		])
 	}
 
+	/// Encrypt data using a key context and a data context. If the key is periodic, use the
+	/// current timestamp.
 	pub fn encrypt(
 		&self,
 		key_context: &KeyContext,
@@ -44,6 +75,8 @@ impl<'a> Coffio<'a> {
 		self.process_encrypt_at(key_context, data_context, data, SystemTime::now())
 	}
 
+	/// Encrypt data using a key context and a data context. If the key is periodic, use the
+	/// specified timestamp.
 	#[cfg(feature = "encrypt-at")]
 	pub fn encrypt_at(
 		&self,
@@ -78,6 +111,7 @@ impl<'a> Coffio<'a> {
 		Ok(storage::encode_cipher(ikm.id, &encrypted_data, tp))
 	}
 
+	/// Decrypt data using a key context and a data context.
 	pub fn decrypt(
 		&self,
 		key_context: &KeyContext,
