@@ -7,10 +7,57 @@ use crate::ikm::IkmId;
 use crate::ikm::IKM_BASE_STRUCT_SIZE;
 use crate::ikm::{CounterId, InputKeyMaterial, InputKeyMaterialList};
 use base64ct::{Base64UrlUnpadded, Encoding};
+use std::fmt;
 
 const STORAGE_SEPARATOR: &str = ":";
 #[cfg(feature = "encryption")]
 const NB_PARTS: usize = 3;
+
+#[derive(Clone, Copy, Debug, Default)]
+enum EncodedIkmlStorageVersion {
+	#[default]
+	V1,
+}
+
+impl EncodedIkmlStorageVersion {
+	fn strip_prefix(data: &str) -> Result<(Self, &str)> {
+		if let Some(d) = data.strip_prefix(&EncodedIkmlStorageVersion::V1.to_string()) {
+			return Ok((EncodedIkmlStorageVersion::V1, d));
+		}
+		Err(Error::ParsingEncodedDataInvalidIkmlVersion)
+	}
+}
+
+impl fmt::Display for EncodedIkmlStorageVersion {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::V1 => write!(f, "ikml-v1:"),
+		}
+	}
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+enum EncodedDataStorageVersion {
+	#[default]
+	V1,
+}
+
+impl EncodedDataStorageVersion {
+	fn strip_prefix(data: &str) -> Result<(Self, &str)> {
+		if let Some(d) = data.strip_prefix(&EncodedDataStorageVersion::V1.to_string()) {
+			return Ok((EncodedDataStorageVersion::V1, d));
+		}
+		Err(Error::ParsingEncodedDataInvalidEncVersion)
+	}
+}
+
+impl fmt::Display for EncodedDataStorageVersion {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self {
+			Self::V1 => write!(f, "enc-v1:"),
+		}
+	}
+}
 
 #[inline]
 fn encode_data(data: &[u8]) -> String {
@@ -24,11 +71,12 @@ fn decode_data(s: &str) -> Result<Vec<u8>> {
 
 #[cfg(feature = "ikm-management")]
 pub(crate) fn encode_ikm_list(ikml: &InputKeyMaterialList) -> Result<String> {
+	let version = EncodedIkmlStorageVersion::default().to_string();
 	let data_size = (ikml.ikm_lst.iter().fold(0, |acc, ikm| {
-		acc + IKM_BASE_STRUCT_SIZE + ikm.scheme.get_ikm_size()
+		version.len() + acc + IKM_BASE_STRUCT_SIZE + ikm.scheme.get_ikm_size()
 	})) + 4;
 	let mut ret = String::with_capacity(data_size);
-	ret += crate::STORAGE_IKML_VERSION;
+	ret += &version;
 	ret += &encode_data(&ikml.id_counter.to_le_bytes());
 	for ikm in &ikml.ikm_lst {
 		ret += STORAGE_SEPARATOR;
@@ -43,7 +91,7 @@ pub(crate) fn encode_cipher(
 	encrypted_data: &EncryptedData,
 	time_period: Option<u64>,
 ) -> String {
-	let mut ret = String::from(crate::STORAGE_ENC_VERSION);
+	let mut ret = EncodedDataStorageVersion::default().to_string();
 	ret += &encode_data(&ikm_id.to_le_bytes());
 	ret += STORAGE_SEPARATOR;
 	ret += &encode_data(&encrypted_data.nonce);
@@ -57,9 +105,7 @@ pub(crate) fn encode_cipher(
 }
 
 pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
-	let data = data
-		.strip_prefix(crate::STORAGE_IKML_VERSION)
-		.ok_or(Error::ParsingEncodedDataInvalidIkmlVersion)?;
+	let (_version, data) = EncodedIkmlStorageVersion::strip_prefix(data)?;
 	let v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	if v.is_empty() {
 		return Err(Error::ParsingEncodedDataInvalidIkmListLen(v.len()));
@@ -83,9 +129,7 @@ pub(crate) fn decode_ikm_list(data: &str) -> Result<InputKeyMaterialList> {
 
 #[cfg(feature = "encryption")]
 pub(crate) fn decode_cipher(data: &str) -> Result<(IkmId, EncryptedData, Option<u64>)> {
-	let data = data
-		.strip_prefix(crate::STORAGE_ENC_VERSION)
-		.ok_or(Error::ParsingEncodedDataInvalidEncVersion)?;
+	let (_version, data) = EncodedDataStorageVersion::strip_prefix(data)?;
 	let mut v: Vec<&str> = data.split(STORAGE_SEPARATOR).collect();
 	let time_period = if v.len() == NB_PARTS + 1 {
 		match v.pop() {
