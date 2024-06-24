@@ -50,8 +50,8 @@ macro_rules! key_ctx_from_iter {
 /// A good practice is to use a different encryption keys for each kind of data you wish to
 /// encrypt. For instance, when encrypting fields in a database, you might want to use a different
 /// key for each table, or maybe for each column. It is your responsibility to define the
-/// granularity. Considering the key are automatically derived from the [InputKeyMaterial][crate::InputKeyMaterial] (IKM),
-/// you should go for a high granularity.
+/// granularity. Considering the key are automatically derived from the
+/// [InputKeyMaterial][crate::InputKeyMaterial] (IKM), you should go for a high granularity.
 ///
 /// In order to achieve this, coffio uses the concept of [KeyContext]. The main component of this
 /// struct is an array of strings which represents the context in which a key is derived, which
@@ -73,11 +73,17 @@ macro_rules! key_ctx_from_iter {
 /// let coffio concatenate them in a safe way. Not doing so may result in canonicalization issues
 /// and therefore the use of the same context (and encryption key) for different use cases.
 ///
-/// Another element of context can be the date and time of the encryption. To achieve this, coffio allows to set a key periodicity. In this concept, the time is divided in periods of a defined length and a different encryption key will be generated for each of those periods. Therefore, the lower is the period, the more frequently the encryption key will change.
+/// Another element of context can be the date and time of the encryption. To achieve this, coffio
+/// allows to set a key periodicity. In this concept, the time is divided in periods of a defined
+/// length and a different encryption key will be generated for each of those periods. Therefore,
+/// the lower is the period, the more frequently the encryption key will change.
 ///
-/// The default period is set to the value of [DEFAULT_KEY_CTX_PERIODICITY][crate::DEFAULT_KEY_CTX_PERIODICITY].
+/// The default period is set to the value of
+/// [DEFAULT_KEY_CTX_PERIODICITY][crate::DEFAULT_KEY_CTX_PERIODICITY].
 ///
-/// In order to be able to derive the correct decryption key, the key period is stored along with the encrypted data. An attacker having access to the encrypted data would therefore be able to know the time period when the data has been encrypted.
+/// In order to be able to derive the correct decryption key, the key period is stored along with
+/// the encrypted data. An attacker having access to the encrypted data would therefore be able to
+/// know the time period when the data has been encrypted.
 pub struct KeyContext {
 	pub(crate) ctx: Vec<String>,
 	pub(crate) periodicity: Option<u64>,
