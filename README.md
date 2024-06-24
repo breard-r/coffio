@@ -35,8 +35,8 @@ to your use case and if you are using it correctly.
 
 ## Should I use this crate?
 
-Although it may work, some parts are not stabilized yet. Expect breaking change
-that may result in the total loss of previously encrypted data.
+If you have a use case covered by this crate AND you do not care about using an
+experimental crate, then you may use it.
 
 ## Why should I use this crate instead of a symmetric encryption function?
 
