@@ -8,6 +8,67 @@ macro_rules! data_ctx_from_iter {
 	};
 }
 
+/// The context in which some data is encrypted.
+///
+/// The main purpose of encrypting data before storing it in the database is to preserve data
+/// confidentiality even if an attacker gains access to the database. In order to check whether or
+/// not the encryption is efficient, we must therefore consider the database as compromised. A
+/// typical scenario is to have an application that encrypts data given by the user before storing
+/// it and decrypts it before displaying it back to the user. In this scenario, an user should
+/// access its own data only.
+///
+/// In such a scenario, if the application does not include adequate protections, an attacker
+/// having access to the database and having a legitimate user account can trick the application
+/// into decrypting and displaying the data of other users. This can be done in several ways. A
+/// first way of doing it, is by copying and pasting the victim's encrypted data, at cell level,
+/// into the attacker's own data cell. A second way of doing it is for the attacker to edit the
+/// list of users having access to the victim's data by adding himself. There may be others way to
+/// edit the database in such a way that the application is tricked into thinking the attacker's
+/// user account has a legitimate access to the victim's data. This is one of the many forms of the
+/// [confused deputy problem](https://en.wikipedia.org/wiki/Confused_deputy_problem).
+///
+/// In order to solve this vulnerability, a solution is to use additional authenticated data (AAD)
+/// which is a feature commonly provided by modern authenticated encryption schemes. Such a feature
+/// allows, on encryption, to provide some data that will be used during the computation of the
+/// encrypted data's checksum. The exact same AAD must be given upon decryption, otherwise the
+/// checksum will be invalid and the decryption process will not take place, resulting in an error.
+/// To use this feature to solve the confused deputy problem, you must therefore use the
+/// appropriate data in the AAD, which Coffio presents you under the name of DataContext.
+///
+/// <div class="warning">
+/// The ADD, and therefore the DataContext, cannot replace the secret encryption key. If the
+/// encrypted data and the encryption key has leaked, an attacker can use a modified version of a
+/// cryptographic library to decrypt the data even without having access to the AAD.
+/// </div>
+///
+/// The choice of the data that should be set as DataContext is crucial and depends on how your
+/// application works. Please carefully study how your application may be abused before deciding
+/// which data will be used. This step may require professional advice from your cryptographer. The
+/// most common data used in the DataContext are the encrypted data's row ID as well as the access
+/// list.
+///
+/// <div class="warning">
+/// If some data used in the DataContext changes, you have to decrypt the encrypted data before
+/// changing it and then re-encrypt it. Failing to do so will result in an error when trying to
+/// decrypt the data.
+/// </div>
+///
+/// <div class="warning">
+/// The concatenation of the different data parts used in the DataContext may lead to weaknesses if
+/// done in a naive way. Coffio does concatenate the different parts in a safe way, which is why
+/// you should always give as an array of individual parts instead of a single element.
+/// </div>
+///
+/// # Examples
+///
+/// ```
+/// use coffio::DataContext;
+///
+/// let my_data_ctx: DataContext = [
+///     "0a13e260-6d77-4748-ac53-fd7961a513a1", // row's ID
+///     "2b84ecf4-5697-40df-a4cd-627fdccfd09d", // owner's ID
+/// ].into();
+/// ```
 pub struct DataContext {
 	ctx: Vec<String>,
 }
