@@ -35,13 +35,13 @@ pub(crate) type SchemeSerializeType = u32;
 ///
 /// In the following scheme description, the following terms are used:
 /// - `Max data size` describes the maximal size of data that can safely be encrypted using a
-/// single key and nonce, which means you should never pass a `data` parameter to
-/// [encrypt][crate::Coffio::encrypt] that has a higher size. Coffio will not enforce this
-/// limit, it is your responsibility to do so.
+///   single key and nonce, which means you should never pass a `data` parameter to
+///   [encrypt][crate::Coffio::encrypt] that has a higher size. Coffio will not enforce this
+///   limit, it is your responsibility to do so.
 /// - `Max invocations` describes the maximal number of times you can safely call
-/// [encrypt][crate::Coffio::encrypt] with a single key, which means you should either rotate
-/// your IKM or use an appropriate key periodicity before reaching this number. Coffio will neither
-/// enforce this limit nor count the number of invocations, it is your responsibility to do so.
+///   [encrypt][crate::Coffio::encrypt] with a single key, which means you should either rotate
+///   your IKM or use an appropriate key periodicity before reaching this number. Coffio will neither
+///   enforce this limit nor count the number of invocations, it is your responsibility to do so.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Scheme {
 	/// `default`
@@ -52,7 +52,7 @@ pub enum Scheme {
 	/// - Max data size: 256 GB
 	/// - Max invocations: no limitation
 	/// - Resources: [RFC 7539](https://doi.org/10.17487/RFC7539),
-	/// [draft-irtf-cfrg-xchacha](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha)
+	///   [draft-irtf-cfrg-xchacha](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha)
 	#[cfg(feature = "chacha")]
 	XChaCha20Poly1305WithBlake3 = 1,
 	/// - Key derivation: HKDF-SHA256
