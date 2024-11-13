@@ -696,7 +696,7 @@ mod encryption {
 	}
 
 	#[test]
-	#[cfg(feature = "sha")]
+	#[cfg(feature = "aes")]
 	fn get_latest_ikm_aes128gcm_sha256() {
 		let mut lst = InputKeyMaterialList::new();
 		let _ = lst.add_ikm();
