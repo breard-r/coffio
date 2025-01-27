@@ -22,7 +22,7 @@ benchmark = ["criterion"]
 
 [dependencies]
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }
-getrandom = { version = "0.2.12", default-features = false }
+getrandom = { version = "0.3.0", default-features = false }
 thiserror = { version = "2.0.3", default-features = false }
 
 # chacha feature:
