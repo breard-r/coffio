@@ -13,7 +13,7 @@ const NONCE_SIZE: usize = 12;
 
 pub(crate) fn aes128gcm_gen_nonce() -> Result<Vec<u8>> {
 	let mut nonce: [u8; NONCE_SIZE] = [0; NONCE_SIZE];
-	getrandom::getrandom(&mut nonce)?;
+	getrandom::fill(&mut nonce)?;
 	Ok(nonce.to_vec())
 }
 

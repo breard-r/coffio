@@ -9,7 +9,7 @@ const NONCE_SIZE: usize = 24;
 
 pub(crate) fn xchacha20poly1305_gen_nonce() -> Result<Vec<u8>> {
 	let mut nonce: [u8; NONCE_SIZE] = [0; NONCE_SIZE];
-	getrandom::getrandom(&mut nonce)?;
+	getrandom::fill(&mut nonce)?;
 	Ok(nonce.to_vec())
 }
 

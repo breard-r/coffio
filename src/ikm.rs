@@ -243,7 +243,7 @@ impl InputKeyMaterialList {
 	) -> Result<IkmId> {
 		let ikm_len = scheme.get_ikm_size();
 		let mut content: Vec<u8> = vec![0; ikm_len];
-		getrandom::getrandom(content.as_mut_slice())?;
+		getrandom::fill(content.as_mut_slice())?;
 		self.id_counter += 1;
 		self.ikm_lst.push(InputKeyMaterial {
 			id: self.id_counter,
