@@ -12,7 +12,7 @@ keywords = ["cryptography", "encryption"]
 categories = ["cryptography"]
 
 [features]
-default = ["aes", "chacha", "ikm-management"]
+default = ["aes", "chacha", "ikm-management", "encrypt-at"]
 encryption = []
 aes = ["encryption", "aes-gcm", "hkdf", "sha2"]
 chacha = ["encryption", "chacha20poly1305", "blake3"]
