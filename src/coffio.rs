@@ -2,7 +2,7 @@ use crate::canonicalization::{canonicalize, join_canonicalized_str};
 use crate::context::{DataContext, KeyContext};
 use crate::error::Result;
 use crate::kdf::derive_key;
-use crate::{storage, IkmId, InputKeyMaterialList};
+use crate::{IkmId, InputKeyMaterialList, storage};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Base structure used to encrypt and decrypt data.
@@ -303,12 +303,30 @@ mod tests {
 		let tests = &[
 			("", "empty data 1"),
 			("env-v1:", "empty data 2"),
-			("enc-v1:AQAATA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "unknown ikm id"),
-			("enc-v1:AQAAAA:8pVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid nonce"),
-			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:8TkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA", "invalid ciphertext"),
-			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NaAAAAAAAAA", "invalid time period"),
-			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:", "empty time period"),
-			("enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg", "missing time period"),
+			(
+				"enc-v1:AQAATA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA",
+				"unknown ikm id",
+			),
+			(
+				"enc-v1:AQAAAA:8pVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA",
+				"invalid nonce",
+			),
+			(
+				"enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:8TkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA",
+				"invalid ciphertext",
+			),
+			(
+				"enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NaAAAAAAAAA",
+				"invalid time period",
+			),
+			(
+				"enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:",
+				"empty time period",
+			),
+			(
+				"enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg",
+				"missing time period",
+			),
 		];
 
 		let lst = get_ikm_lst_chacha20poly1305_blake3();

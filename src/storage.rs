@@ -1,10 +1,10 @@
 #[cfg(feature = "encryption")]
 use crate::encrypted_data::EncryptedData;
 use crate::error::{Error, Result};
-#[cfg(feature = "encryption")]
-use crate::ikm::IkmId;
 #[cfg(feature = "ikm-management")]
 use crate::ikm::IKM_BASE_STRUCT_SIZE;
+#[cfg(feature = "encryption")]
+use crate::ikm::IkmId;
 use crate::ikm::{CounterId, InputKeyMaterial, InputKeyMaterialList};
 use base64ct::{Base64UrlUnpadded, Encoding};
 use std::fmt;
@@ -433,26 +433,65 @@ mod ciphers {
 			("enc-v1::", "empty data 4"),
 			("enc-v1:::", "empty data 5"),
 			("enc-v1::::", "empty data 6"),
-			("enc-v1:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing ikm id"),
-			("enc-v1:KgAAAA:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "missing nonce"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb", "missing ciphertext"),
-
+			(
+				"enc-v1:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"missing ikm id",
+			),
+			(
+				"enc-v1:KgAAAA:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"missing nonce",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb",
+				"missing ciphertext",
+			),
 			// Empty parts
-			("enc-v1::a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "empty ikm id"),
-			("enc-v1:KgAAAA::TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "empty nonce"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:", "empty ciphertext"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:", "empty time period"),
-
+			(
+				"enc-v1::a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"empty ikm id",
+			),
+			(
+				"enc-v1:KgAAAA::TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"empty nonce",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:",
+				"empty ciphertext",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:",
+				"empty time period",
+			),
 			// Invalid base64 parts
-			("enc-v1:KgAA.A:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid base64 ikm id"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKu@tqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid base64 nonce"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHK/xfnY-zR_bN", "invalid base64 ciphertext"),
-
+			(
+				"enc-v1:KgAA.A:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"invalid base64 ikm id",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKu@tqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"invalid base64 nonce",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHK/xfnY-zR_bN",
+				"invalid base64 ciphertext",
+			),
 			// Invalid data length
-			("enc-v1:KgAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid ikm id data length"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN", "invalid nonce data length"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR", "invalid ciphertext data length"),
-			("enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:AQAAAA", "invalid time period length"),
+			(
+				"enc-v1:KgAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"invalid ikm id data length",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN",
+				"invalid nonce data length",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR",
+				"invalid ciphertext data length",
+			),
+			(
+				"enc-v1:KgAAAA:a5SpjAoqhvuI9n3GPhDKuotqoLbf7_Fb:TI24Wr_g-ZV7_X1oHqVKak9iRlQSneYVOMWB-3Lp-hFHKfxfnY-zR_bN:AQAAAA",
+				"invalid time period length",
+			),
 		];
 		for (ciphertext, error_str) in invalid_tests {
 			let res = super::decode_cipher(ciphertext);

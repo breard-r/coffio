@@ -18,8 +18,8 @@ pub(crate) fn derive_key(
 
 #[cfg(test)]
 mod tests {
-	use crate::ikm::InputKeyMaterial;
 	use crate::KeyContext;
+	use crate::ikm::InputKeyMaterial;
 	use std::num::NonZeroU64;
 
 	const TEST_RAW_IKM: &[u8] = &[

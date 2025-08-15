@@ -1,8 +1,8 @@
 mod data;
 
 use coffio::{Coffio, DataContext, InputKeyMaterialList, KeyContext};
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use data::{Data, DATA_CTX, IKMLS, KEY_CTX, MEASUREMENT_TIME, PLAIN_INPUTS};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use data::{DATA_CTX, Data, IKMLS, KEY_CTX, MEASUREMENT_TIME, PLAIN_INPUTS};
 use std::time::Duration;
 
 fn encrypt_coffio(ikml: &str, input: &str) {

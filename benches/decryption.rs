@@ -1,9 +1,9 @@
 mod data;
 
 use coffio::{Coffio, DataContext, InputKeyMaterialList, KeyContext};
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use data::{
-	Data, DATA_CTX, ENCRYPTED_INPUTS, IKML_AES128GCM_SHA256, IKML_XCHACHA20POLY1305_BLAKE3,
+	DATA_CTX, Data, ENCRYPTED_INPUTS, IKML_AES128GCM_SHA256, IKML_XCHACHA20POLY1305_BLAKE3,
 	KEY_CTX, MEASUREMENT_TIME,
 };
 use std::time::Duration;

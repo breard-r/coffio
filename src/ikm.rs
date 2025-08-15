@@ -383,8 +383,7 @@ mod tests {
 	#[test]
 	#[cfg(feature = "chacha")]
 	fn import() {
-		let s =
-			"ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+		let s = "ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::import(s);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();
@@ -406,8 +405,7 @@ mod tests {
 	#[test]
 	#[cfg(feature = "chacha")]
 	fn from_str() {
-		let s =
-			"ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
+		let s = "ikml-v1:AQAAAA:AQAAAAEAAAC_vYEw1ujVG5i-CtoPYSzik_6xaAq59odjPm5ij01-e6zz4mUAAAAALJGBiwAAAAAA";
 		let res = InputKeyMaterialList::from_str(s);
 		assert!(res.is_ok(), "res: {res:?}");
 		let lst = res.unwrap();

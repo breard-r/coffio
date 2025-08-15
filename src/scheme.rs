@@ -1,10 +1,10 @@
+use crate::Error;
 #[cfg(feature = "encryption")]
 use crate::encrypted_data::EncryptedData;
 #[cfg(feature = "encryption")]
 use crate::error::Result;
 #[cfg(feature = "encryption")]
 use crate::kdf::KdfFunction;
-use crate::Error;
 
 #[cfg(feature = "aes")]
 mod aes;
