@@ -2,7 +2,7 @@
 name = "coffio"
 version = "0.1.0"
 authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
-edition = "2021"
+edition = "2024"
 description = "Abstraction layer for symmetric data encryption, primarily designed for database column encryption."
 documentation = "https://docs.rs/coffio/"
 readme = "README.md"
