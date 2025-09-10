@@ -30,7 +30,7 @@
 //!
 //! - `encryption` (default): interfaces related to data encryption and decryption
 //! - `ikm-management` (default): interfaces related to the IKM list management
-//! - `encrypt-at`: add a function allowing to encrypt data using a specified timestamp
+//! - `encrypt-at` (default): add a function allowing to encrypt data using a specified timestamp
 //!
 //! The following features allows you to control which encryption algorithms are activated.
 //!
