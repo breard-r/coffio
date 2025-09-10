@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - This project now uses to the Rust 2024 edition.
+- The minimum supported Rust version (MSRV) is now Rust 1.88.
 - The `encrypt-at` feature is now enabled by default.
 
 
