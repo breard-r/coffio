@@ -16,4 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- It is now possible to set a decryption policy.
+
+### Changed
+
+- This project now uses to the Rust 2024 edition.
+- The `encrypt-at` feature is now enabled by default.
+
+
+## [0.1.0] - 2024-06-24
+
+### Added
+
 - Initial release.
