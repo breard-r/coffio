@@ -98,6 +98,8 @@ mod error;
 mod ikm;
 #[cfg(feature = "encryption")]
 mod kdf;
+#[cfg(feature = "encryption")]
+mod policy;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 mod scheme;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
@@ -111,6 +113,8 @@ pub use context::{DataContext, KeyContext};
 pub use error::Error;
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use ikm::{IkmId, InputKeyMaterial, InputKeyMaterialList};
+#[cfg(feature = "encryption")]
+pub use policy::{DecryptionPolicy, DecryptionPolicyAction};
 #[cfg(any(feature = "encryption", feature = "ikm-management"))]
 pub use scheme::Scheme;
 

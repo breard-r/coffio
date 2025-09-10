@@ -56,6 +56,26 @@ pub enum Error {
 	/// An invalid scheme has been encountered.
 	#[error("parsing error: scheme: {0}: unknown scheme")]
 	ParsingSchemeUnknownScheme(crate::scheme::SchemeSerializeType),
+	/// Attempting to decrypt data previously encrypted using IKM before its validity period while
+	/// policy denies it.
+	#[error("policy error: decryption: encrypted using an early IKM")]
+	PolicyDecryptionEarly,
+	/// Attempting to decrypt data previously encrypted using an expired IKM while policy denies
+	/// it.
+	#[error("policy error: decryption: encrypted using an expired IKM")]
+	PolicyDecryptionExpiredEnc,
+	/// Attempting to decrypt data previously encrypted using a now expired IKM while policy denies
+	/// it.
+	#[error("policy error: decryption: currently expired IKM")]
+	PolicyDecryptionExpiredNow,
+	/// Attempting to decrypt data previously encrypted using a time period located in the future
+	/// while policy denies it.
+	#[error("policy error: decryption: data encrypted in the future")]
+	PolicyDecryptionFuture,
+	/// Attempting to decrypt data previously encrypted using a now revoked IKM while policy denies
+	/// it.
+	#[error("policy error: decryption: currently revoked IKM")]
+	PolicyDecryptionRevoked,
 	/// Something went wrong when retrieving random data from the system.
 	#[error("unable to generate random values: {0}")]
 	RandomSourceError(getrandom::Error),

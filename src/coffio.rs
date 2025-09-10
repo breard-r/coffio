@@ -2,6 +2,7 @@ use crate::canonicalization::{canonicalize, join_canonicalized_str};
 use crate::context::{DataContext, KeyContext};
 use crate::error::Result;
 use crate::kdf::derive_key;
+use crate::policy::DecryptionPolicy;
 use crate::{IkmId, InputKeyMaterialList, storage};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -35,12 +36,27 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// ```
 pub struct Coffio<'a> {
 	ikm_list: &'a InputKeyMaterialList,
+	decryption_policy: DecryptionPolicy,
 }
 
 impl<'a> Coffio<'a> {
-	/// Initialize a new structure with an IKM list.
+	/// Initialize a new structure with an IKM list using the default decryption policy.
 	pub fn new(ikm_list: &'a InputKeyMaterialList) -> Self {
-		Self { ikm_list }
+		Self {
+			ikm_list,
+			decryption_policy: DecryptionPolicy::default(),
+		}
+	}
+
+	/// Initialize a new structure with an IKM list using a custom decryption policy.
+	pub fn with_decryption_policy(
+		ikm_list: &'a InputKeyMaterialList,
+		policy: &DecryptionPolicy,
+	) -> Self {
+		Self {
+			ikm_list,
+			decryption_policy: *policy,
+		}
 	}
 
 	#[inline]
@@ -120,6 +136,7 @@ impl<'a> Coffio<'a> {
 	) -> Result<Vec<u8>> {
 		let (ikm_id, encrypted_data, tp) = storage::decode_cipher(stored_data)?;
 		let ikm = self.ikm_list.get_ikm_by_id(ikm_id)?;
+		self.decryption_policy.check(ikm, key_context, tp)?;
 		let key = derive_key(ikm, key_context, tp);
 		let aad = Self::generate_aad(ikm.id, &encrypted_data.nonce, key_context, data_context, tp);
 		let decryption_function = ikm.scheme.get_decryption();
@@ -130,7 +147,7 @@ impl<'a> Coffio<'a> {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{DataContext, KeyContext};
+	use crate::{DataContext, DecryptionPolicyAction, Error, KeyContext};
 
 	const TEST_CIPHERTEXT: &str = "enc-v1:AQAAAA:qpVDbGvu0wl2tQgfF5jngCWCoCq5d9gj:eTkOSKz9YyvJE8PyT1lAFn4hyeK_0l6tWU4yyHA-7WRCJ9G-HWNpqoKBxg:NgAAAAAAAAA";
 	const TEST_DATA: &[u8] = b"Lorem ipsum dolor sit amet.";
@@ -363,5 +380,70 @@ mod tests {
 		let invalid_data_ctx = DataContext::from(["invalid", "data", "context"]);
 		let res = cb.decrypt(&key_ctx, &invalid_data_ctx, TEST_CIPHERTEXT);
 		assert!(res.is_err(), "failed error detection: invalid key context");
+	}
+
+	#[test]
+	#[cfg(feature = "chacha")]
+	fn with_default_policy() {
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
+		let key_ctx = get_static_empty_key_ctx();
+		let data_ctx = DataContext::from([]);
+		let policy = DecryptionPolicy::default();
+		let cb = Coffio::with_decryption_policy(&lst, &policy);
+
+		// Encrypt
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
+		assert!(res.is_ok(), "res: {res:?}");
+		let ciphertext = res.unwrap();
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 105);
+
+		// Decrypt
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert!(res.is_ok(), "res: {res:?}");
+		let plaintext = res.unwrap();
+		assert_eq!(plaintext, TEST_DATA);
+
+		// Fail early
+		let key_ctx = KeyContext::from([]);
+		let ciphertext = "enc-v1:AQAAAA:jWn478VdGxXZ5R2SYBFBmoD9YT8t2ftO:w2Z-sLdBnJ8LO84x_YsNvFBOxw2VwH6C1JLEI50l4ELJH1cQbesyzhuxQA:AAAAAAAAAAA";
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert_eq!(res, Err(Error::PolicyDecryptionEarly));
+	}
+
+	#[test]
+	#[cfg(feature = "chacha")]
+	fn with_custom_policy() {
+		let lst = get_ikm_lst_chacha20poly1305_blake3();
+		let key_ctx = get_static_empty_key_ctx();
+		let data_ctx = DataContext::from([]);
+
+		let mut policy = DecryptionPolicy::default();
+		policy.set_early_enc(DecryptionPolicyAction::Deny);
+		policy.set_expired_enc(DecryptionPolicyAction::Deny);
+		policy.set_expired_now(DecryptionPolicyAction::Deny);
+		policy.set_future_enc(DecryptionPolicyAction::Deny);
+		policy.set_revoked(DecryptionPolicyAction::Deny);
+
+		let cb = Coffio::with_decryption_policy(&lst, &policy);
+
+		// Encrypt
+		let res = cb.encrypt(&key_ctx, &data_ctx, TEST_DATA);
+		assert!(res.is_ok(), "res: {res:?}");
+		let ciphertext = res.unwrap();
+		assert!(ciphertext.starts_with("enc-v1:AQAAAA:"));
+		assert_eq!(ciphertext.len(), 105);
+
+		// Decrypt
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert!(res.is_ok(), "res: {res:?}");
+		let plaintext = res.unwrap();
+		assert_eq!(plaintext, TEST_DATA);
+
+		// Fail early
+		let key_ctx = KeyContext::from([]);
+		let ciphertext = "enc-v1:AQAAAA:jWn478VdGxXZ5R2SYBFBmoD9YT8t2ftO:w2Z-sLdBnJ8LO84x_YsNvFBOxw2VwH6C1JLEI50l4ELJH1cQbesyzhuxQA:AAAAAAAAAAA";
+		let res = cb.decrypt(&key_ctx, &data_ctx, &ciphertext);
+		assert_eq!(res, Err(Error::PolicyDecryptionEarly));
 	}
 }

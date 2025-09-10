@@ -13,7 +13,7 @@ categories = ["cryptography"]
 
 [features]
 default = ["aes", "chacha", "ikm-management", "encrypt-at"]
-encryption = []
+encryption = ["log"]
 aes = ["encryption", "aes-gcm", "hkdf", "sha2"]
 chacha = ["encryption", "chacha20poly1305", "blake3"]
 ikm-management = []
@@ -23,6 +23,7 @@ benchmark = ["criterion"]
 [dependencies]
 base64ct = { version = "1.6.0", default-features = false, features = ["std"] }
 getrandom = { version = "0.3.0", default-features = false }
+log = { version = "0.4.28", default-features = false, optional = true }
 thiserror = { version = "2.0.3", default-features = false }
 
 # chacha feature:
