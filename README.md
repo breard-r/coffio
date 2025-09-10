@@ -20,7 +20,7 @@ database column encryption.
 
 # Disclaimer
 
-:warning: DANGER: DRAGONS A(H)EAD! :dragon_face:
+⚠️ DANGER: DRAGONS A(H)EAD! 🐲
 
 This crate is experimental and has never been audited by an independent
 security professional. You should therefore NOT use it in production.
@@ -35,7 +35,7 @@ to your use case and if you are using it correctly.
 
 ## Should I use this crate?
 
-If you have a use case covered by this crate AND you do not care about using an
+If you have a use case covered by this crate AND you do not mind about using an
 experimental crate, then you may use it.
 
 ## Why should I use this crate instead of a symmetric encryption function?
