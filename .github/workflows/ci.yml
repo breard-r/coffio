@@ -10,6 +10,7 @@ jobs:
         rust:
           - 1.88.0
           - 1.89.0
+          - 1.90.0
           - stable
           - beta
           - nightly
@@ -53,3 +54,14 @@ jobs:
         with:
           persist-credentials: false
       - uses: EmbarkStudios/cargo-deny-action@v2
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install pipx
+        run: sudo apt update && sudo apt install -y pipx
+      - name: Run REUSE
+        run: pipx run reuse lint
