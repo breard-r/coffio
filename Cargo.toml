@@ -35,8 +35,8 @@ blake3 = { version = "1.5.0", default-features = false, optional = true }
 # aes feature:
 # - Aes128GcmWithSha256
 aes-gcm = { version = "0.10.3", default-features = false, features = ["std", "aes"], optional = true }
-hkdf = { version = "0.12.4", default-features = false, features = ["std"], optional = true }
-sha2 = { version = "0.10.8", default-features = false, features = ["std"], optional = true }
+hkdf = { version = "0.13.0", default-features = false, features = [], optional = true }
+sha2 = { version = "0.11.0", default-features = false, features = [], optional = true }
 
 # Not in dev-dependencies so it can be optional
 criterion = { version = "0.8.1", optional = true }
